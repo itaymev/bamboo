@@ -1,23 +1,6 @@
+# bamboo/pipelines.py
 import pandas as pd
-import logging
-from functools import wraps
-
-# Configure logging
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
-
-# Define a logging decorator
-def log_function_call(func):
-    @wraps(func)
-    def wrapper(*args, **kwargs):
-        logging.info(f"LOG: ({func.__module__}, {func.__name__}) entered.")
-        try:
-            result = func(*args, **kwargs)
-            logging.info(f"LOG: ({func.__module__}, {func.__name__}) executed successfully.")
-            return result
-        except Exception as e:
-            logging.error(f"LOG: ({func.__module__}, {func.__name__}) failed with {e}.")
-            raise
-    return wrapper
+from bamboo.utils import log
 
 class Bamboo:
     """
@@ -25,14 +8,14 @@ class Bamboo:
     Provides pipelines for cleaning operations and data transformations.
     """
 
-    @log_function_call
+    @log
     def __init__(self, data):
         """
         Initialize the Bamboo class with a dataset.
         """
         self.data = self._load_data(data)
 
-    @log_function_call
+    @log
     def _load_data(self, data):
         """
         Private method to load data based on the input type.
@@ -51,21 +34,21 @@ class Bamboo:
         else:
             raise ValueError("Unsupported data type! Must be a Pandas DataFrame or a valid file path.")
 
-    @log_function_call
+    @log
     def preview_data(self, rows=5):
         """
         Preview the first few rows of the dataset.
         """
         return self.data.head(rows)
 
-    @log_function_call
+    @log
     def get_data(self):
         """
         Get the current state of the data.
         """
         return self.data
 
-    @log_function_call
+    @log
     def set_data(self, new_data):
         """
         Replace the current dataset with new data.
@@ -78,7 +61,7 @@ class Bamboo:
             raise ValueError("Data must be a Pandas DataFrame.")
         return self
 
-    @log_function_call
+    @log
     def reset_data(self):
         """
         Reset the dataset to its original state.
@@ -91,7 +74,7 @@ class Bamboo:
             raise ValueError("No original state to reset to!")
         return self
 
-    @log_function_call
+    @log
     def export_data(self, output_path, format='csv'):
         """
         Export the cleaned data to a specified format (CSV, Excel, JSON).
@@ -109,7 +92,7 @@ class Bamboo:
             raise ValueError("Unsupported export format! Choose from 'csv', 'excel', or 'json'.")
         return self
 
-    @log_function_call
+    @log
     def save_state(self):
         """
         Save the current state of the dataset to enable undo functionality.
@@ -119,7 +102,7 @@ class Bamboo:
         self._history.append(self.data.copy())
         return self
 
-    @log_function_call
+    @log
     def undo(self, steps=1):
         """
         Undo the last 'n' cleaning steps and revert to the previous state of the data.
@@ -132,7 +115,7 @@ class Bamboo:
             raise ValueError(f"Cannot undo {steps} step(s). Not enough history.")
         return self
 
-    @log_function_call
+    @log
     def save_pipeline(self, filepath):
         """
         Save the cleaning pipeline steps for reuse.
@@ -141,7 +124,7 @@ class Bamboo:
         joblib.dump(self, filepath)
 
     @staticmethod
-    @log_function_call
+    @log
     def load_pipeline(filepath):
         """
         Load a previously saved cleaning pipeline.
@@ -149,7 +132,7 @@ class Bamboo:
         import joblib
         return joblib.load(filepath)
 
-    @log_function_call
+    @log
     def log_changes(self, message):
         """
         Log changes to the dataset for audit purposes.
@@ -159,7 +142,7 @@ class Bamboo:
         if not self._change_log or self._change_log[-1] != message:
             self._change_log.append(message)
 
-    @log_function_call
+    @log
     def show_change_log(self):
         """
         Display the log of changes made to the dataset during cleaning.
