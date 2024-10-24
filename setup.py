@@ -1,4 +1,4 @@
-# This file is used to package the code into a distributable format.
+# setup.py
 from setuptools import setup, find_packages
 
 setup(
@@ -9,12 +9,13 @@ setup(
     description='Advanced data cleaning built on top of Pandas',
     long_description=open('README.md').read(),
     long_description_content_type='text/markdown',
-    url='https://github.com/yourusername/my_data_cleaner',  # Repo link
+    url='https://github.com/itaymev/smart-clean-package.git', 
     packages=find_packages(),
     install_requires=[
         'pandas>=1.1.0',
-        'scikit-learn>=0.24.0',
-        'numpy>=1.18.0'
+        'numpy>=1.18.0',
+        'scikit-learn>=0.24.0', 
+        'fancyimpute>=0.7.0'   
     ],
     classifiers=[
         'Development Status :: 3 - Alpha',
