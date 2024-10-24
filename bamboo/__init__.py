@@ -1,14 +1,14 @@
 # bamboo/__init__.py
 
-from .pipelines import DataCleaner
-from .imputation import DataCleaner
-from .outliers import DataCleaner
-from .dtype_validation import DataCleaner
-from .duplicates import DataCleaner
-from .formatting import DataCleaner
-from .categorical import DataCleaner
-from .validation import DataCleaner
-from .dates import DataCleaner
-from .profiling import DataCleaner
+from .pipelines import Bamboo
+from .imputation import Bamboo
+from .outliers import Bamboo
+from .dtype_validation import Bamboo
+from .duplicates import Bamboo
+from .formatting import Bamboo
+from .categorical import Bamboo
+from .validation import Bamboo
+from .dates import Bamboo
+from .profiling import Bamboo
 
-__all__ = ['DataCleaner']
+__all__ = ['Bamboo']
