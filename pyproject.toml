@@ -24,11 +24,7 @@ dependencies = [
 ]
 
 [tool.setuptools]
-package-dir = {"" = "bamboo"}
 packages = ["bamboo"]
-
-[tool.setuptools.packages.find]
-where = ["bamboo"]
 
 [project.urls]
 "Homepage" = "https://github.com/itaymev/smart-clean-package"

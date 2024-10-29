@@ -29,8 +29,11 @@ def detect_outliers_zscore(self, columns=None, threshold=3):
     z_scores = np.abs((self.data[columns] - self.data[columns].mean()) / self.data[columns].std())
     outliers = z_scores > threshold
 
+    # Boolean column 'outliers' indicating if a row contains outliers in any of the columns
+    self.data['outliers'] = outliers.any(axis=1)
+    
     self.log_changes(f"Detected outliers using Z-Score with threshold={threshold}.")
-    return outliers
+    return self
 
 @log
 def detect_outliers_iqr(self, columns=None, multiplier=1.5):

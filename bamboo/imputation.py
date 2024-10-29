@@ -1,6 +1,7 @@
 # bamboo/imputation.py
 import pandas as pd
 import numpy as np
+from sklearn.experimental import enable_iterative_imputer  # noqa
 from sklearn.impute import KNNImputer, IterativeImputer
 from bamboo.utils import log
 from fancyimpute import IterativeSVD
@@ -10,15 +11,15 @@ from bamboo.bamboo import Bamboo
 @log
 def impute_missing(self, strategy='mean', columns=None):
     """
-    Impute missing values in the dataset based on the specified strategy.
+    Impute missing values in the dataset based on the specified strategy for numeric columns,
+    and mode for non-numeric columns.
 
     Parameters:
     - strategy: str, default='mean'
-        The strategy to use for imputation. Options are:
-        - 'mean': Replace NaN values with the mean of the column.
-        - 'median': Replace NaN values with the median of the column.
-        - 'mode': Replace NaN values with the mode of the column.
-        - 'custom': Use a custom imputation method (requires custom_function).
+        The strategy to use for imputation of numeric columns. Options are:
+        - 'mean': Replace NaN values with the mean of the column (numeric only).
+        - 'median': Replace NaN values with the median of the column (numeric only).
+        - 'mode': Replace NaN values with the mode of the column (works for both numeric and non-numeric columns).
     - columns: list or None, default=None
         A list of columns to apply the imputation to. If None, all columns will be imputed.
 
@@ -28,16 +29,23 @@ def impute_missing(self, strategy='mean', columns=None):
     if columns is None:
         columns = self.data.columns
 
+    # We will impute missing values based on the data type of the cols, non-numeric cols will always be imputed using mode
+    numeric_columns = self.data[columns].select_dtypes(include=[np.number]).columns
+    non_numeric_columns = self.data[columns].select_dtypes(exclude=[np.number]).columns
+
     if strategy == 'mean':
-        self.data[columns] = self.data[columns].fillna(self.data[columns].mean())
+        self.data[numeric_columns] = self.data[numeric_columns].fillna(self.data[numeric_columns].mean())
     elif strategy == 'median':
-        self.data[columns] = self.data[columns].fillna(self.data[columns].median())
+        self.data[numeric_columns] = self.data[numeric_columns].fillna(self.data[numeric_columns].median())
     elif strategy == 'mode':
-        self.data[columns] = self.data[columns].fillna(self.data[columns].mode().iloc[0])
+        self.data[numeric_columns] = self.data[numeric_columns].fillna(self.data[numeric_columns].mode().iloc[0])
     else:
         raise ValueError("Unsupported strategy! Use 'mean', 'median', or 'mode'.")
 
-    self.log_changes(f"Imputed missing values using {strategy} strategy.")
+    for column in non_numeric_columns:
+        self.data[column] = self.data[column].fillna(self.data[column].mode().iloc[0])
+
+    self.log_changes(f"Imputed missing values using {strategy} strategy for numeric columns and mode for non-numeric columns.")
     return self
 
 @log
