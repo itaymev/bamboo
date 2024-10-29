@@ -1,0 +1,34 @@
+[build-system]
+requires = ["setuptools>=42", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "bamboo"
+version = "0.1.0"
+description = "Advanced data cleaning built on top of Pandas"
+authors = [
+    { name = "Itay Mevorach", email = "itaym@uoregon.edu" }
+]
+license = { text = "MIT" }
+readme = "README.md"
+requires-python = ">=3.6"
+dependencies = [
+    "pandas>=1.1.0",
+    "numpy>=1.18.0",
+    "scikit-learn>=0.24.0",
+    "fancyimpute>=0.7.0",
+    "fuzzywuzzy>=0.18.0",
+    "joblib>=1.0.0",
+    "matplotlib>=3.1.0",
+    "seaborn>=0.11.0"
+]
+
+[tool.setuptools]
+package-dir = {"" = "bamboo"}
+packages = ["bamboo"]
+
+[tool.setuptools.packages.find]
+where = ["bamboo"]
+
+[project.urls]
+"Homepage" = "https://github.com/itaymev/smart-clean-package"
