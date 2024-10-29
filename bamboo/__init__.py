@@ -1,14 +1,16 @@
 # bamboo/__init__.py
 
-from .pipelines import Bamboo
-from .imputation import Bamboo
-from .outliers import Bamboo
-from .dtype_validation import Bamboo
-from .duplicates import Bamboo
-from .formatting import Bamboo
-from .categorical import Bamboo
-from .validation import Bamboo
-from .dates import Bamboo
-from .profiling import Bamboo
+from .bamboo import Bamboo
+
+from .pipelines import *
+from .imputation import *
+from .outliers import *
+from .dtype_validation import *
+from .duplicates import *
+from .formatting import *
+from .categorical import *
+from .validation import *
+from .dates import *
+from .profiling import *
 
 __all__ = ['Bamboo']
