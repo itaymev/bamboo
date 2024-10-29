@@ -36,13 +36,10 @@ Install Bamboo via pip:
 pip install bamboo-cleaning
 ```
 
-Make sure you have Python 3.6+ and the following dependencies are installed:
+Make sure you have Python 3.6+ and the dependencies in requirements.txt are installed:
 
-```txt
-pandas>=1.1.0
-numpy>=1.18.0
-scikit-learn>=0.24.0
-fancyimpute>=0.7.0
+```bash
+pip install -r requirements.txt
 ```
 
 ## Getting Started
