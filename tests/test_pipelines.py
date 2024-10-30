@@ -59,7 +59,8 @@ def test_complex_cleaning_pipeline(complex_sample_data):
     # Imputation: no missing values in 'age', 'salary', 'gender'
     assert not bamboo.get_data()['age'].isnull().any()
     assert not bamboo.get_data()['salary'].isnull().any()
-    assert not bamboo.get_data()['gender'].isnull().any()
+    assert not bamboo.get_data()['gender_f'].isnull().any()
+    assert not bamboo.get_data()['gender_m'].isnull().any()
 
     # Standardization: names should be lowercase and trimmed
     assert bamboo.get_data()['name'][1] == 'bob'

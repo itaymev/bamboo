@@ -60,7 +60,7 @@ def encode_categorical(self, columns=None, method='onehot'):
         columns = self.data.select_dtypes(include=['category']).columns
 
     if method == 'onehot':
-        self.data = pd.get_dummies(self.data, columns=columns, drop_first=True)
+        self.data = pd.get_dummies(self.data, columns=columns, drop_first=False)
         self.log_changes(f"Applied one-hot encoding to columns: {columns}")
     elif method == 'label':
         from sklearn.preprocessing import LabelEncoder
