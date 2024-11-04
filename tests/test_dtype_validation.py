@@ -11,7 +11,7 @@ def sample_data():
     return pd.DataFrame({
         'name': ['Alice', 'Bob', 'Charlie', 'Derek', 123],  # One invalid type (int)
         'age': [25, 'thirty', 35, 40, None],  # One invalid type (str)
-        'salary': [50000.00, None, 60000.00, '100000', 70000.00],  # One invalid type (str)
+        'salary': [50000.00, None, 60000.00, 'abcd', 70000.00],  # One invalid type (str)
         'join_date': ['2020-01-01', '2020-02-15', None, 'Invalid Date', '2020-03-10']
     })
 
@@ -41,11 +41,16 @@ def test_convert_column_types(sample_data):
 def test_identify_invalid_types(sample_data):
     """Test identifying rows with invalid data types."""
     bamboo = Bamboo(sample_data)
-    invalid_types = bamboo.identify_invalid_types(columns=['age', 'salary'], expected_dtype='float64')
-    
+    invalid_types = bamboo.identify_invalid_types(columns=['age'], expected_dtype='int')
+
     # Expect invalid entries for 'age' where 'thirty' is present
-    assert invalid_types['age'][1] is True
-    assert invalid_types['salary'][3] is True  # '100000' is a string
+    assert invalid_types['age'][0] == False
+    assert invalid_types['age'][1] == True
+
+    invalid_types = bamboo.identify_invalid_types(columns=['salary'], expected_dtype='float64')
+
+    assert invalid_types['salary'][0] == False
+    assert invalid_types['salary'][3] == True  # '100000' is a string
     
     print(invalid_types)
 
@@ -53,11 +58,9 @@ def test_enforce_column_types(sample_data):
     """Test enforcing specific data types, invalid values should be coerced to NaN."""
     bamboo = Bamboo(sample_data)
     bamboo.enforce_column_types({'age': 'float64', 'salary': 'float64'})
-    
-    # 'age' should have NaN where the string 'thirty' was
-    assert pd.isna(bamboo.get_data()['age'][1])
-    # 'salary' should have NaN where '100000' (string) was
-    assert pd.isna(bamboo.get_data()['salary'][3])
+
+    assert pd.isna(bamboo.get_data()['age'][1]) # 'age' should have NaN where the string 'thirty' was
+    assert pd.isna(bamboo.get_data()['salary'][3]) # 'salary' should have NaN where 'abcd' (string) was
     
     print(bamboo.get_data())
 
@@ -92,15 +95,11 @@ def test_detect_numeric_columns(sample_data):
     
     print(numeric_columns)
 
-def test_fix_common_type_issues(sample_data):
-    """Test automatically fixing common type issues in columns."""
-    bamboo = Bamboo(sample_data)
-    bamboo.fix_common_type_issues()
-    
-    # The invalid 'thirty' in 'age' should remain unchanged since fix_common_type_issues only fixes numeric and date columns.
-    assert bamboo.get_data()['age'][1] == 'thirty'
-    
-    # Salary string '100000' should now be converted to numeric
-    assert pd.isna(bamboo.get_data()['salary'][3])
-    
-    print(bamboo.get_data())
+if __name__ == '__main__':
+    data = pd.DataFrame({
+        'name': ['Alice', 'Bob', 'Charlie', 'Derek', 123],  # One invalid type (int)
+        'age': [25, 'thirty', 35, 40, None],  # One invalid type (str)
+        'salary': [50000.00, None, 60000.00, '100000', 70000.00],  # One invalid type (str)
+        'join_date': ['2020-01-01', '2020-02-15', None, 'Invalid Date', '2020-03-10']
+    })
+    test_enforce_column_types(data)

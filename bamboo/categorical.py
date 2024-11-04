@@ -178,7 +178,7 @@ def replace_rare_categories(self, column, threshold=0.01, replacement='Other'):
     
     if replacement not in self.data[column].cat.categories:
         self.data[column] = self.data[column].cat.add_categories([replacement])
-    
+    print(rare_categories, replacement)
     self.data[column] = self.data[column].replace(rare_categories, replacement)
     self.data[column] = self.data[column].cat.remove_unused_categories()
     self.log_changes(f"Replaced rare categories in column '{column}' with '{replacement}'.")

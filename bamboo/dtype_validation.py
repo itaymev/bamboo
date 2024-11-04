@@ -128,28 +128,13 @@ def detect_numeric_columns(self):
     Returns:
     - list: A list of column names detected as numeric (int or float).
     """
-    numeric_cols = [col for col in self.data.columns if pd.api.types.is_numeric_dtype(self.data[col])]
+    numeric_cols = []
+    for col in self.data.columns:
+        num_numeric = pd.to_numeric(self.data[col], errors='coerce').notna().sum()
+        if num_numeric > (len(self.data[col]) / 2):
+            numeric_cols.append(col)
     self.log_changes("Detected numeric columns")
     return numeric_cols
-
-@log
-def fix_common_type_issues(self):
-    """
-    Automatically fix common type issues, such as string values that should be numeric or dates.
-
-    Returns:
-    - Bamboo: The Bamboo instance with fixed common type issues.
-    """
-    for column in self.data.columns:
-        if self.data[column].dtype == 'object':
-            # Attempt to convert to datetime, then to numeric
-            try:
-                self.data[column] = pd.to_datetime(self.data[column], errors='ignore')
-                self.log_changes(f"Attempted to convert '{column}' to datetime")
-            except:
-                self.data[column] = pd.to_numeric(self.data[column], errors='ignore')
-                self.log_changes(f"Attempted to convert '{column}' to numeric")
-    return self
 
 
 Bamboo.check_dtype_consistency = check_dtype_consistency
@@ -159,4 +144,3 @@ Bamboo.enforce_column_types = enforce_column_types
 Bamboo.coerce_data_types = coerce_data_types
 Bamboo.detect_categorical_columns = detect_categorical_columns
 Bamboo.detect_numeric_columns = detect_numeric_columns
-Bamboo.fix_common_type_issues = fix_common_type_issues
