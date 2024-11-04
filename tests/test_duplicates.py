@@ -86,15 +86,3 @@ def test_handle_near_duplicates(sample_data):
     assert bamboo.get_data().loc[0]['name'] == 'AlicE'
 
     print(bamboo.get_data())
-
-
-# --------- delete later ------------
-
-if __name__ == "__main__":
-    data = pd.DataFrame({
-        'name': ['Alice', 'Bob', 'Charlie', 'Derek', "123"],
-        'age': [25, 'thirty', 35, 40, None],
-        'salary': [50000.00, None, 60000.00, 'abcd', 70000.00],
-        'join_date': ['2020-01-01', '2020-02-15', None, 'Invalid Date', '2020-03-10']
-    })
-    test_handle_near_duplicates(data)
