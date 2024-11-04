@@ -76,5 +76,3 @@ def test_complex_cleaning_pipeline(complex_sample_data):
     # Ensure that both 'gender_f' and 'gender_m' are present after encoding
     assert 'gender_m' in bamboo.get_data().columns
     assert 'gender_f' in bamboo.get_data().columns
-
-    print(bamboo.get_data())

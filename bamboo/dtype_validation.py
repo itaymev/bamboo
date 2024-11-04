@@ -1,4 +1,5 @@
 # bamboo/dtype_validation.py
+
 import pandas as pd
 import numpy as np
 from bamboo.utils import log
@@ -19,7 +20,7 @@ def check_dtype_consistency(self, columns=None):
     if columns is None:
         columns = self.data.columns
 
-    consistency = {col: self.data[col].apply(lambda x: isinstance(x, type(self.data[col].dropna().iloc[0]))).all() for col in columns}
+    consistency = {col: pd.api.types.infer_dtype(self.data[col]) not in ['mixed', 'mixed-integer'] for col in columns}
     self.log_changes(f"Checked data type consistency for columns: {columns}")
     return consistency
 
@@ -36,7 +37,7 @@ def convert_column_types(self, column_type_dict):
     - Bamboo: The Bamboo instance with updated column data types.
     """
     for column, dtype in column_type_dict.items():
-        self.data[column] = self.data[column].astype(dtype)
+        self.data[column] = pd.to_numeric(self.data[column], errors='coerce')
         self.log_changes(f"Converted column '{column}' to {dtype}")
     return self
 
@@ -59,11 +60,8 @@ def identify_invalid_types(self, columns=None, expected_dtype=None):
 
     invalid_rows = {}
     for col in columns:
-        if expected_dtype is None:
-            dtype = self.data[col].dtype
-        else:
-            dtype = expected_dtype
-        invalid_rows[col] = ~self.data[col].apply(lambda x: isinstance(x, dtype))
+        col_dtype = self.data[col].dtype if expected_dtype is None else expected_dtype
+        invalid_rows[col] = ~self.data[col].apply(lambda x: pd.api.types.is_dtype_equal(type(x), col_dtype))
 
     invalid_df = pd.DataFrame(invalid_rows)
     self.log_changes(f"Identified invalid types for columns: {columns}")
@@ -82,9 +80,13 @@ def enforce_column_types(self, column_type_dict):
     - Bamboo: The Bamboo instance with enforced column types.
     """
     for column, dtype in column_type_dict.items():
-        self.data[column] = pd.to_numeric(self.data[column], errors='coerce')
+        if dtype == 'datetime64[ns]':
+            self.data[column] = pd.to_datetime(self.data[column], errors='coerce')
+        else:
+            self.data[column] = pd.to_numeric(self.data[column], errors='coerce')
         self.log_changes(f"Enforced column '{column}' as {dtype}, invalid entries set to NaN")
     return self
+
 
 @log
 def coerce_data_types(self, column_type_dict):
@@ -99,7 +101,10 @@ def coerce_data_types(self, column_type_dict):
     - Bamboo: The Bamboo instance with coerced data types.
     """
     for column, dtype in column_type_dict.items():
-        self.data[column] = pd.to_numeric(self.data[column], errors='coerce') if dtype == 'numeric' else self.data[column].astype(dtype, errors='ignore')
+        if dtype == 'datetime64[ns]':
+            self.data[column] = pd.to_datetime(self.data[column], errors='coerce')
+        else:
+            self.data[column] = pd.to_numeric(self.data[column], errors='coerce')
         self.log_changes(f"Coerced column '{column}' to {dtype} with error handling")
     return self
 
@@ -111,7 +116,7 @@ def detect_categorical_columns(self):
     Returns:
     - list: A list of column names detected as categorical.
     """
-    categorical_cols = [col for col in self.data.columns if pd.api.types.is_categorical_dtype(self.data[col]) or self.data[col].nunique() < 10]
+    categorical_cols = [col for col in self.data.columns if isinstance(self.data[col].dtype, pd.CategoricalDtype) or self.data[col].nunique() < 10]
     self.log_changes("Detected categorical columns")
     return categorical_cols
 
@@ -123,7 +128,7 @@ def detect_numeric_columns(self):
     Returns:
     - list: A list of column names detected as numeric (int or float).
     """
-    numeric_cols = self.data.select_dtypes(include=[np.number]).columns.tolist()
+    numeric_cols = [col for col in self.data.columns if pd.api.types.is_numeric_dtype(self.data[col])]
     self.log_changes("Detected numeric columns")
     return numeric_cols
 
@@ -137,6 +142,7 @@ def fix_common_type_issues(self):
     """
     for column in self.data.columns:
         if self.data[column].dtype == 'object':
+            # Attempt to convert to datetime, then to numeric
             try:
                 self.data[column] = pd.to_datetime(self.data[column], errors='ignore')
                 self.log_changes(f"Attempted to convert '{column}' to datetime")

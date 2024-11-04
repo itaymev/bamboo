@@ -153,7 +153,7 @@ def detect_rare_categories(self, column, threshold=0.01):
     if column not in self.data.select_dtypes(include=['category']).columns:
         raise ValueError(f"Column '{column}' is not a categorical column.")
 
-    value_counts = self.data[column].value_counts(normalize=True)
+    value_counts = self.data[column].value_counts(normalize=True, dropna=True)
     rare_categories = value_counts[value_counts < threshold].index.tolist()
     self.log_changes(f"Detected rare categories in column '{column}': {rare_categories}")
     return rare_categories
@@ -175,8 +175,14 @@ def replace_rare_categories(self, column, threshold=0.01, replacement='Other'):
     - Bamboo: The Bamboo instance with rare categories replaced.
     """
     rare_categories = self.detect_rare_categories(column, threshold)
+    
+    if replacement not in self.data[column].cat.categories:
+        self.data[column] = self.data[column].cat.add_categories([replacement])
+    
     self.data[column] = self.data[column].replace(rare_categories, replacement)
+    self.data[column] = self.data[column].cat.remove_unused_categories()
     self.log_changes(f"Replaced rare categories in column '{column}' with '{replacement}'.")
+    
     return self
 
 Bamboo.convert_to_categorical = convert_to_categorical
