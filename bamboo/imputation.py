@@ -29,7 +29,7 @@ def impute_missing(self, strategy='mean', columns=None):
     if columns is None:
         columns = self.data.columns
 
-    # We will impute missing values based on the data type of the cols, non-numeric cols will always be imputed using mode
+    # impute missing values based on the data type of the cols, non-numeric cols will always be imputed using mode
     numeric_columns = self.data[columns].select_dtypes(include=[np.number]).columns
     non_numeric_columns = self.data[columns].select_dtypes(exclude=[np.number]).columns
 
