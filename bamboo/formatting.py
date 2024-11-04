@@ -67,6 +67,8 @@ def format_dates(self, format='%Y-%m-%d', columns=None):
     """
     if columns is None:
         columns = self.data.select_dtypes(include=['datetime']).columns
+    if isinstance(columns, str):
+        columns = [columns]
 
     for col in columns:
         self.data[col] = pd.to_datetime(self.data[col], errors='coerce').dt.strftime(format)
@@ -89,6 +91,9 @@ def remove_special_characters(self, columns=None, chars_to_remove=None):
     """
     if columns is None:
         columns = self.data.select_dtypes(include=['object']).columns
+    if isinstance(columns, str):
+        columns = [columns]
+
 
     if chars_to_remove is None:
         chars_to_remove = r'[^\w\s]'  # Default is to remove any non-word and non-space characters
@@ -112,25 +117,12 @@ def standardize_currency_format(self, columns=None):
     """
     if columns is None:
         columns = self.data.select_dtypes(include=[float, int]).columns
+    if isinstance(columns, str):
+        columns = [columns]
 
     for col in columns:
         self.data[col] = self.data[col].apply(lambda x: f"${x:,.2f}")
         self.log_changes(f"Standardized currency format in column '{col}'")
-    return self
-
-@log
-def fix_common_formatting_issues(self):
-    """
-    Automatically fix common formatting issues such as mixed data types or inconsistent delimiters.
-
-    Returns:
-    - Bamboo: The Bamboo instance with common formatting issues fixed.
-    """
-    for col in self.data.columns:
-        if self.data[col].dtype == 'object':
-            self.data[col] = pd.to_numeric(self.data[col], errors='ignore')
-            self.data[col] = pd.to_datetime(self.data[col], errors='ignore')
-            self.log_changes(f"Fixed common formatting issues in column '{col}'")
     return self
 
 # Append methods to the Bamboo class
@@ -139,4 +131,3 @@ Bamboo.standardize_case = standardize_case
 Bamboo.format_dates = format_dates
 Bamboo.remove_special_characters = remove_special_characters
 Bamboo.standardize_currency_format = standardize_currency_format
-Bamboo.fix_common_formatting_issues = fix_common_formatting_issues
