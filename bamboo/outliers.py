@@ -29,11 +29,12 @@ def detect_outliers_zscore(self, columns=None, threshold=3):
     z_scores = np.abs((self.data[columns] - self.data[columns].mean()) / self.data[columns].std())
     outliers = z_scores > threshold
 
-    # Boolean column 'outliers' indicating if a row contains outliers in any of the columns
-    self.data['outliers'] = outliers.any(axis=1)
-    
+    # Mark rows with any outliers in specified columns
+    outlier_rows = outliers.any(axis=1)
+    self.data['outliers'] = outlier_rows
+
     self.log_changes(f"Detected outliers using Z-Score with threshold={threshold}.")
-    return self
+    return outliers
 
 @log
 def detect_outliers_iqr(self, columns=None, multiplier=1.5):
@@ -195,26 +196,32 @@ def detect_outliers_lof(self, n_neighbors=20, contamination=0.1, columns=None):
     return self.data[['outliers']]
 
 @log
-def remove_outliers(self, method='zscore', **kwargs):
+def remove_outliers(self, method='zscore', columns=None, **kwargs):
     """
-    Remove all rows that contain outliers.
+    Remove rows that contain outliers in the specified columns.
 
     Parameters:
     - method: str, default='zscore'
         The method to use for outlier detection. Options: 'zscore', 'iqr'.
+    - columns: list or None, default=None
+        List of columns to check for outliers. If None, all numeric columns are used.
 
     Returns:
-    - Bamboo: The Bamboo instance with outliers removed.
+    - Bamboo: The Bamboo instance with rows containing outliers removed.
     """
+    if columns is None:
+        columns = self.data.select_dtypes(include=[np.number]).columns
+
     if method == 'zscore':
-        outliers = self.detect_outliers_zscore(**kwargs)
+        outliers = self.detect_outliers_zscore(columns=columns, **kwargs)
     elif method == 'iqr':
-        outliers = self.detect_outliers_iqr(**kwargs)
+        outliers = self.detect_outliers_iqr(columns=columns, **kwargs)
     else:
         raise ValueError("Unsupported outlier detection method!")
 
+    # Remove rows where outliers are detected
     self.data = self.data[~outliers.any(axis=1)]
-    self.log_changes(f"Removed outliers using {method} method.")
+    self.log_changes(f"Removed rows with outliers in columns {columns} using {method} method.")
     return self
 
 @log
@@ -357,9 +364,9 @@ def clip_outliers(self, method='zscore', clip_value=None, **kwargs):
     return self
 
 @log
-def cap_outliers(self, method='zscore', lower_cap=None, upper_cap=None, **kwargs):
+def cap_outliers(self, method='zscore', lower_cap=None, upper_cap=None, columns=None, **kwargs):
     """
-    Cap outliers by setting them to a defined upper or lower limit.
+    Cap outliers by setting them to a defined upper or lower limit in specific columns.
 
     Parameters:
     - method: str, default='zscore'
@@ -368,37 +375,34 @@ def cap_outliers(self, method='zscore', lower_cap=None, upper_cap=None, **kwargs
         The value to cap lower-bound outliers at. If None (undefined), the lower threshold will be used.
     - upper_cap: float or None, default=None
         The value to cap upper-bound outliers at. If None (undefined), the upper threshold will be used.
+    - columns: list or None, default=None
+        List of columns to apply capping to. If None, all numeric columns are used.
 
     Returns:
     - Bamboo: The Bamboo instance with outliers capped at the specified limits.
     """
+    if columns is None:
+        columns = self.data.select_dtypes(include=[np.number]).columns
+
     if method == 'zscore':
-        outliers = self.detect_outliers_zscore(**kwargs)
-        z_scores = (self.data - self.data.mean()) / self.data.std()  # Recalculate Z-scores
+        z_scores = (self.data[columns] - self.data[columns].mean()) / self.data[columns].std()
+        outliers = np.abs(z_scores) > kwargs.get('threshold', 3)
     elif method == 'iqr':
-        outliers = self.detect_outliers_iqr(**kwargs)
-        Q1 = self.data.quantile(0.25)
-        Q3 = self.data.quantile(0.75)
+        Q1 = self.data[columns].quantile(0.25)
+        Q3 = self.data[columns].quantile(0.75)
         IQR = Q3 - Q1
+        outliers = (self.data[columns] < (Q1 - kwargs.get('multiplier', 1.5) * IQR)) | \
+                   (self.data[columns] > (Q3 + kwargs.get('multiplier', 1.5) * IQR))
     else:
         raise ValueError("Unsupported outlier detection method!")
 
-    for col in outliers.columns:
+    for col in columns:
         if lower_cap is not None:
-            # Cap lower-bound outliers
-            if method == 'zscore':
-                self.data[col] = np.where(z_scores[col] < -kwargs.get('threshold', 3), lower_cap, self.data[col])
-            elif method == 'iqr':
-                self.data[col] = np.where(self.data[col] < (Q1[col] - kwargs.get('multiplier', 1.5) * IQR[col]), lower_cap, self.data[col])
-
+            self.data[col] = np.where(outliers[col] & (self.data[col] < lower_cap), lower_cap, self.data[col])
         if upper_cap is not None:
-            # Cap upper-bound outliers
-            if method == 'zscore':
-                self.data[col] = np.where(z_scores[col] > kwargs.get('threshold', 3), upper_cap, self.data[col])
-            elif method == 'iqr':
-                self.data[col] = np.where(self.data[col] > (Q3[col] + kwargs.get('multiplier', 1.5) * IQR[col]), upper_cap, self.data[col])
+            self.data[col] = np.where(outliers[col] & (self.data[col] > upper_cap), upper_cap, self.data[col])
 
-    self.log_changes(f"Capped outliers using {method} method with lower_cap={lower_cap}, upper_cap={upper_cap}.")
+    self.log_changes(f"Capped outliers in columns {columns} using {method} method with lower_cap={lower_cap}, upper_cap={upper_cap}.")
     return self
 
 Bamboo.detect_outliers_zscore = detect_outliers_zscore
