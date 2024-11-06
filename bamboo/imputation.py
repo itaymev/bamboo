@@ -51,7 +51,7 @@ def impute_missing(self, strategy='mean', columns=None):
 @log
 def drop_missing(self, axis=0, how='any', thresh=None, subset=None):
     """
-    Drop rows or columns with missing values.
+    Drop rows or columns with missing values. To use threshold-based dropping, specify the `thresh` parameter, and specify how as None.
 
     Parameters:
     - axis: int, default=0
@@ -67,7 +67,12 @@ def drop_missing(self, axis=0, how='any', thresh=None, subset=None):
     Returns:
     - Bamboo: The Bamboo instance with dropped missing values.
     """
-    self.data.dropna(axis=axis, how=how, thresh=thresh, subset=subset, inplace=True)
+    if thresh is None:
+        self.data.dropna(axis=axis, how=how, subset=subset, inplace=True)
+    elif how is None:
+        self.data.dropna(axis=axis, thresh=thresh, subset=subset, inplace=True)
+    else:
+        raise ValueError("Specify either 'thresh' or 'how', not both.")
     self.log_changes(f"Dropped missing values with axis={axis}, how={how}, thresh={thresh}.")
     return self
 
