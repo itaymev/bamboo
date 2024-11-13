@@ -37,11 +37,13 @@ def missing_data_report(self):
     return missing_report
 
 @log
-def outliers_report(self, method='zscore', threshold=3):
+def outliers_report(self, columns=None, method='zscore', threshold=3):
     """
     Generate a report of detected outliers using specified methods.
 
     Parameters:
+    - columns: list or None, default=None
+        List of columns to include in the outliers report. If None, all columns will be included.
     - method: str, default='zscore'
         The method to use for outlier detection. Options: 'zscore', 'iqr', 'isolation_forest', etc.
     - threshold: float, default=3
@@ -50,19 +52,23 @@ def outliers_report(self, method='zscore', threshold=3):
     Returns:
     - pd.DataFrame: A DataFrame indicating which rows contain outliers.
     """
+    data = self.data if columns is None else self.data[columns]
+
     if method == 'zscore':
-        z_scores = np.abs((self.data - self.data.mean()) / self.data.std())
+        z_scores = np.abs((data - data.mean()) / data.std(ddof=0))
+        #    print(z_scores)
         outliers = z_scores > threshold
     elif method == 'iqr':
-        Q1 = self.data.quantile(0.25)
-        Q3 = self.data.quantile(0.75)
+        Q1 = data.quantile(0.25)
+        Q3 = data.quantile(0.75)
         IQR = Q3 - Q1
-        outliers = (self.data < (Q1 - 1.5 * IQR)) | (self.data > (Q3 + 1.5 * IQR))
+        outliers = (data < (Q1 - 1.5 * IQR)) | (data > (Q3 + 1.5 * IQR))
     else:
         raise ValueError("Unsupported method for outliers report.")
 
-    outliers_report = outliers.any(axis=1).value_counts()
+    outliers_report = outliers.any(axis=1)
     self.log_changes(f"Generated outliers report using {method} method.")
+    print(outliers_report)
     return outliers_report
 
 @log
@@ -100,7 +106,10 @@ def correlation_report(self):
     Returns:
     - pd.DataFrame: A DataFrame containing the correlation matrix.
     """
-    corr_matrix = self.data.corr()
+    # select only numeric columns
+    numeric_columns = self.data.select_dtypes(include=np.number)
+
+    corr_matrix = numeric_columns.corr()
     plt.figure(figsize=(12, 8))
     sns.heatmap(corr_matrix, annot=True, cmap='coolwarm', linewidths=0.5)
     plt.title("Correlation Matrix")
@@ -125,6 +134,7 @@ def data_types_overview(self):
     })
 
     self.log_changes("Generated data types overview.")
+    print(data_type_report)
     return data_type_report
 
 @log
