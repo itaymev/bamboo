@@ -4,8 +4,8 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "bamboo"
-version = "0.1.0"
-description = "Advanced data cleaning built on top of Pandas"
+version = "1.0.1"
+description = "Data cleaning built on top of Pandas"
 authors = [
     { name = "Itay Mevorach", email = "itaym@uoregon.edu" }
 ]
