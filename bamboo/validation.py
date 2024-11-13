@@ -111,6 +111,7 @@ def validate_categories(self, column, valid_categories):
     - bool: True if validation passes, False if invalid categories are found.
     """
     invalid_categories = set(self.data[column].unique()) - set(valid_categories)
+    # print(invalid_categories)
 
     if invalid_categories:
         self.log_changes(f"Validation failed: invalid categories {invalid_categories} found in column '{column}'.")
@@ -134,11 +135,11 @@ def validate_date_range(self, column, start_date=None, end_date=None):
     Returns:
     - bool: True if validation passes, False if dates fall outside the range.
     """
-    if start_date is not None and (self.data[column] < pd.to_datetime(start_date)).any():
+    if start_date is not None and (pd.to_datetime(self.data[column]) < pd.to_datetime(start_date)).any():
         self.log_changes(f"Validation failed: dates in column '{column}' before {start_date}.")
         return False
 
-    if end_date is not None and (self.data[column] > pd.to_datetime(end_date)).any():
+    if end_date is not None and (pd.to_datetime(self.data[column]) > pd.to_datetime(end_date)).any():
         self.log_changes(f"Validation failed: dates in column '{column}' after {end_date}.")
         return False
 
