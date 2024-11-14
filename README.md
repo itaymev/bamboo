@@ -1,6 +1,6 @@
-# Bamboo: Advanced Data Cleaning for Pandas
+# BambooChute: Advanced Data Cleaning for Pandas
 
-**Bamboo** is a Python package built on top of Pandas to streamline and simplify advanced data cleaning processes. It offers a rich set of tools for handling missing data, outliers, categorical transformations, date manipulations, and more. With Bamboo, you can perform common and complex data cleaning tasks more efficiently, with an easy-to-use, extensible API.
+**BambooChute** is a Python package built on top of Pandas to streamline and simplify advanced data cleaning processes. It offers a rich set of tools for handling missing data, outliers, categorical transformations, date manipulations, and more. With Bamboo, you can perform common and complex data cleaning tasks more efficiently, with an easy-to-use, extensible API.
 
 ## Table of Contents
 
@@ -30,10 +30,10 @@
 
 ## Installation
 
-Install Bamboo via pip:
+Install BambooChute via pip:
 
 ```bash
-pip install bamboo-cleaning
+pip install BambooChute
 ```
 
 Make sure you have Python 3.6+ and the dependencies in requirements.txt are installed:
@@ -48,7 +48,7 @@ Here’s a quick example to get you started:
 
 ```python
 import pandas as pd
-from bamboo import Bamboo
+from BambooChute import Bamboo
 
 # Load data
 data = pd.read_csv('example.csv')

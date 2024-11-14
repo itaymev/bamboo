@@ -22,3 +22,6 @@ ENV/
 
 # Ignore Jupyter notebook checkpoints (if using Jupyter)
 .ipynb_checkpoints/
+
+# Ignore notes files and other temporary files
+*.notes
