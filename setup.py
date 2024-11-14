@@ -3,10 +3,10 @@ from setuptools import setup, find_packages
 
 setup(
     name='BambooChute',
-    version='1.0.4',
+    version='1.0.5',
     author='Itay Mevorach',
     author_email='itaym@uoregon.edu',
-    description='Advanced data cleaning built on top of Pandas',
+    description='Data cleaning package built on top of Pandas',
     long_description=open('README.md').read(),
     long_description_content_type='text/markdown',
     url='https://github.com/itaymev/bamboo', 
