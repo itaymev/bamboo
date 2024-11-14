@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: BambooChute
-Version: 1.0.2
+Version: 1.0.3
 Summary: Advanced data cleaning built on top of Pandas
 Home-page: https://github.com/itaymev/smart-clean-package.git
 Author: Itay Mevorach
@@ -8,33 +8,38 @@ Author-email: itaym@uoregon.edu
 License: UNKNOWN
 Description: # BambooChute: Advanced Data Cleaning for Pandas
         
-        **BambooChute** is a Python package built on top of Pandas to streamline and simplify advanced data cleaning processes. It offers a rich set of tools for handling missing data, outliers, categorical transformations, date manipulations, and more. With Bamboo, you can perform common and complex data cleaning tasks more efficiently, with an easy-to-use, extensible API.
+        **BambooChute** is a comprehensive Python package built on top of Pandas, dedicated to simplifying and enhancing data cleaning workflows. With a wide range of functionality for managing missing data, outlier detection, data validation, and more, BambooChute provides an efficient and user-friendly API for complex data cleaning processes.
         
         ## Table of Contents
         
         - [Features](#features)
         - [Installation](#installation)
         - [Getting Started](#getting-started)
-        - [Usage](#usage)
+        - [Functionality Overview](#functionality-overview)
           - [Loading Data](#loading-data)
           - [Handling Missing Data](#handling-missing-data)
-          - [Outlier Detection](#outlier-detection)
-          - [Categorical Data](#categorical-data)
-          - [Date Manipulations](#date-manipulations)
-          - [Data Validation](#data-validation)
+          - [Outlier Detection and Removal](#outlier-detection-and-removal)
+          - [Categorical Data Processing](#categorical-data-processing)
+          - [Date Handling and Transformation](#date-handling-and-transformation)
+          - [Data Type Validation](#data-type-validation)
+          - [Duplicate Management](#duplicate-management)
+          - [Data Formatting](#data-formatting)
+          - [Data Profiling](#data-profiling)
         - [Testing](#testing)
         - [Contributing](#contributing)
         - [License](#license)
         
         ## Features
         
-        - **Missing Data Handling:** Imputation using strategies like mean, median, KNN, and more.
-        - **Outlier Detection & Removal:** Z-Score, IQR, Isolation Forest, and others.
-        - **Date Handling:** Conversion, extraction, range creation, and more.
-        - **Categorical Data Processing:** Encoding, conversion, and handling missing categories.
-        - **Data Validation:** Validate missing data, data types, value ranges, and custom validations.
-        - **Pipelines:** Save and load cleaning pipelines for reuse.
-        - **Profiling:** Generate summary reports on missing data, outliers, distribution, and correlations.
+        - **Versatile Data Loading:** Load data from multiple formats (CSV, Excel, JSON, DataFrames).
+        - **Advanced Missing Data Handling:** Use a variety of imputation strategies (mean, median, KNN, custom) and drop functions.
+        - **Flexible Outlier Detection & Removal:** Detect outliers with Z-score, IQR, Isolation Forest, and DBSCAN, with customizable removal methods.
+        - **Categorical Data Encoding:** Efficiently convert and encode categorical data with options for one-hot encoding, frequency encoding, and more.
+        - **Robust Date Handling:** Convert dates, extract parts, manage date ranges, and handle invalid dates.
+        - **Data Validation Tools:** Validate data types, range of values, and consistency.
+        - **Duplicate Management:** Identify, mark, merge, and handle near-duplicates using fuzzy matching.
+        - **Consistent Data Formatting:** Clean string data by trimming whitespace, standardizing cases, and removing special characters.
+        - **In-depth Data Profiling:** Generate summary reports and detect trends within data.
         
         ## Installation
         
@@ -44,7 +49,7 @@ Description: # BambooChute: Advanced Data Cleaning for Pandas
         pip install BambooChute
         ```
         
-        Make sure you have Python 3.6+ and the dependencies in requirements.txt are installed:
+        Ensure dependencies from `requirements.txt` are installed:
         
         ```bash
         pip install -r requirements.txt
@@ -52,104 +57,153 @@ Description: # BambooChute: Advanced Data Cleaning for Pandas
         
         ## Getting Started
         
-        Here’s a quick example to get you started:
+        Here’s a quick start to load and clean data:
         
         ```python
         import pandas as pd
         from BambooChute import Bamboo
         
         # Load data
-        data = pd.read_csv('example.csv')
+        data = pd.read_csv('data.csv')
         
         # Initialize Bamboo
         bamboo = Bamboo(data)
         
-        # Preview the first few rows
+        # Preview data
         print(bamboo.preview_data())
         
         # Handle missing data
         bamboo.impute_missing(strategy='mean')
         
-        # Detect and remove outliers using Z-Score method
+        # Detect and remove outliers
         bamboo.detect_outliers_zscore(threshold=3)
         
         # Export cleaned data
         bamboo.export_data('cleaned_data.csv')
         ```
         
-        ## Usage
+        ## Functionality Overview
         
         ### Loading Data
         
-        Bamboo supports loading data from various formats, including CSV, Excel, JSON, and Pandas DataFrames:
+        Bamboo supports loading data from CSV, Excel, JSON, and directly from Pandas DataFrames.
         
         ```python
-        bamboo = Bamboo('data.csv')  # Load from CSV
-        bamboo = Bamboo(df)  # Load directly from DataFrame
+        # Load data from various formats
+        bamboo = Bamboo('data.csv')  
+        bamboo = Bamboo(df) 
         ```
         
         ### Handling Missing Data
         
-        Impute missing values using different strategies:
+        Various strategies allow for flexibility in handling missing values.
         
         ```python
+        # Basic imputation
         bamboo.impute_missing(strategy='mean')
-        bamboo.impute_knn(n_neighbors=5)
+        
+        # Custom filling
+        bamboo.fill_with_custom(lambda x: 'default' if x is None else x)
+        
+        # Drop missing data
         bamboo.drop_missing(axis=0, how='any')
         ```
         
-        ### Outlier Detection
+        ### Outlier Detection and Removal
         
-        Detect outliers using various methods:
+        Multiple methods for outlier detection, including Isolation Forest, IQR, and Z-score.
         
         ```python
-        # Detect outliers with Z-Score method
+        # Detect outliers
         outliers = bamboo.detect_outliers_zscore(threshold=3)
         
-        # Remove outliers
-        bamboo.remove_outliers(method='zscore')
+        # Remove outliers using specific methods
+        bamboo.remove_outliers(method='iqr')
+        bamboo.remove_outliers_isolation_forest(contamination=0.1)
         ```
         
-        ### Categorical Data
+        ### Categorical Data Processing
         
-        Handle categorical columns easily:
+        Easily encode and manipulate categorical data.
         
         ```python
-        # Convert to categorical
-        bamboo.convert_to_categorical()
+        # Convert columns to categorical type
+        bamboo.convert_to_categorical(['column'])
         
-        # One-hot encode categorical columns
+        # Encode categorical data with one-hot or label encoding
         bamboo.encode_categorical(method='onehot')
+        bamboo.encode_frequency()
         ```
         
-        ### Date Manipulations
+        ### Date Handling and Transformation
         
-        Perform complex date manipulations with ease:
+        Comprehensive support for managing date data.
         
         ```python
         # Convert columns to datetime
         bamboo.convert_to_datetime(['date_column'])
         
-        # Extract year, month, day from a date column
+        # Extract specific date parts (e.g., year, month)
         bamboo.extract_date_parts('date_column', parts=['year', 'month'])
+        
+        # Detect missing intervals in time series
+        missing_dates = bamboo.detect_time_gaps('date_column')
         ```
         
-        ### Data Validation
+        ### Data Type Validation
         
-        Validate your dataset before and after cleaning:
+        Ensure data types are consistent and enforce specific types across columns.
         
         ```python
-        # Validate that no missing data exists
-        is_valid = bamboo.validate_missing_data()
+        # Check for data type consistency
+        consistency = bamboo.check_dtype_consistency()
         
-        # Validate data types
-        expected_types = {'age': 'int64', 'name': 'object'}
-        bamboo.validate_data_types(expected_types)
+        # Convert columns to specific data types
+        bamboo.convert_column_types({'age': 'int64'})
+        ```
+        
+        ### Duplicate Management
+        
+        Handle duplicates efficiently, with support for merging and marking.
+        
+        ```python
+        # Identify duplicates
+        duplicates = bamboo.identify_duplicates(subset=['name'])
+        
+        # Drop duplicates, keeping specific occurrences
+        bamboo.drop_duplicates(keep='first')
+        
+        # Handle near-duplicates using fuzzy matching
+        bamboo.handle_near_duplicates(column='name', threshold=0.8)
+        ```
+        
+        ### Data Formatting
+        
+        Various utilities to clean and standardize data formatting.
+        
+        ```python
+        # Trim whitespace in string columns
+        bamboo.trim_whitespace()
+        
+        # Standardize case in text
+        bamboo.standardize_case(case='title')
+        
+        # Remove special characters
+        bamboo.remove_special_characters(columns=['column'])
+        ```
+        
+        ### Data Profiling
+        
+        Generate data profiling reports for better insight into dataset structure and quality.
+        
+        ```python
+        # Generate profiling summary
+        summary = bamboo.generate_summary_report()
         ```
         
         ## Testing
         
-        The package comes with a set of unit tests under the `tests` directory. You can run the tests using:
+        To run unit tests:
         
         ```bash
         python -m unittest discover tests
@@ -157,19 +211,15 @@ Description: # BambooChute: Advanced Data Cleaning for Pandas
         
         ## Contributing
         
-        Contributions are welcome. Please open an issue or submit a pull request if you have suggestions.
+        To contribute:
         
-        ### Steps to Contribute:
         1. Fork the repository.
         2. Create a new branch.
-        3. Make your changes.
-        4. Submit a pull request.
+        3. Make changes and submit a pull request.
         
         ## License
         
-        Bamboo is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
-        
-        ---
+        Licensed under the MIT License.
 Platform: UNKNOWN
 Classifier: Development Status :: 3 - Alpha
 Classifier: Intended Audience :: Developers
