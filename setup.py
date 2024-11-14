@@ -2,7 +2,7 @@
 from setuptools import setup, find_packages
 
 setup(
-    name='Bamboo',
+    name='BambooChute',
     version='1.0.1',
     author='Itay Mevorach',
     author_email='itaym@uoregon.edu',
