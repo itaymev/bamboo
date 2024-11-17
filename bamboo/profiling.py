@@ -7,14 +7,14 @@ from bamboo.utils import log
 from bamboo.bamboo import Bamboo
 
 @log
-def basic_summary(self):
+def basic_summary(self, include='all'):
     """
     Generate a basic summary report with descriptive statistics for numeric and categorical columns.
 
     Returns:
     - pd.DataFrame: A DataFrame with descriptive statistics for each column.
     """
-    summary = self.data.describe(include='all')
+    summary = self.data.describe(include=include)
     self.log_changes("Generated basic summary report.")
     return summary
 

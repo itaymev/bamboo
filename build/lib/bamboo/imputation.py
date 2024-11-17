@@ -38,12 +38,12 @@ def impute_missing(self, strategy='mean', columns=None):
     elif strategy == 'median':
         self.data[numeric_columns] = self.data[numeric_columns].fillna(self.data[numeric_columns].median())
     elif strategy == 'mode':
-        self.data[numeric_columns] = self.data[numeric_columns].fillna(self.data[numeric_columns].mode().iloc[0])
+        self.data[numeric_columns] = self.data[numeric_columns].fillna(self.data[numeric_columns].mode())
     else:
         raise ValueError("Unsupported strategy! Use 'mean', 'median', or 'mode'.")
 
     for column in non_numeric_columns:
-        self.data[column] = self.data[column].fillna(self.data[column].mode().iloc[0])
+        self.data[column] = self.data[column].fillna(self.data[column].mode())
 
     self.log_changes(f"Imputed missing values using {strategy} strategy for numeric columns and mode for non-numeric columns.")
     return self
