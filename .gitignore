@@ -9,6 +9,7 @@ __pycache__/
 
 # Ignore egg info directory generated during package installation
 bamboo.egg-info/
+BambooChute.egg-info/
 
 # Ignore virtual environment directories
 venv/
