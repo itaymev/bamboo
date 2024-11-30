@@ -1,7 +1,7 @@
-Version 1.1.0
+Version 1.1.1
 
 Bug Fixes:
-- Mode based imputation
+- Logging bug fix -- set to false as default in 1.1.0
 
-Features:
+Features (1.1.x):
 - Logging added as optional parameter on intitalization

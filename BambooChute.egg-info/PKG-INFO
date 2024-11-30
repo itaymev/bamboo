@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: BambooChute
-Version: 1.1.0
+Version: 1.1.1
 Summary: Data cleaning package built on top of Pandas
 Home-page: https://github.com/itaymev/bamboo
 Author: Itay Mevorach

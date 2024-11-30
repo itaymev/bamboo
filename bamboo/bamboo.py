@@ -1,6 +1,7 @@
 # bamboo/bamboo.py
 import pandas as pd
-from bamboo.utils import log, LOGGING_ENABLED
+from bamboo.utils import log
+from log import set_logging
 
 class Bamboo:
     """
@@ -13,8 +14,7 @@ class Bamboo:
         """
         Initialize the Bamboo class with a dataset.
         """
-        global LOGGING_ENABLED
-        LOGGING_ENABLED = sys_log
+        set_logging(sys_log)
         self.data = self._load_data(data)
 
     @log
