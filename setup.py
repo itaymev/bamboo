@@ -2,8 +2,8 @@
 from setuptools import setup, find_packages
 
 setup(
-    name='BambooChute',
-    version='1.1.5',
+    name='bamboochute',
+    version='1.2.0',
     author='Itay Mevorach',
     author_email='itaym@uoregon.edu',
     description='Data cleaning package built on top of Pandas',

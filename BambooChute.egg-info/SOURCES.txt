@@ -21,6 +21,11 @@ bamboo/pipelines.py
 bamboo/profiling.py
 bamboo/utils.py
 bamboo/validation.py
+bamboochute.egg-info/PKG-INFO
+bamboochute.egg-info/SOURCES.txt
+bamboochute.egg-info/dependency_links.txt
+bamboochute.egg-info/requires.txt
+bamboochute.egg-info/top_level.txt
 tests/test_categorical.py
 tests/test_dates.py
 tests/test_dtype_validation.py

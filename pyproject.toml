@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "BambooChute"
-version = "1.1.5"
+version = "1.2.0"
 description = "Data cleaning built on top of Pandas"
 authors = [
     { name = "Itay Mevorach", email = "itaym@uoregon.edu" }
@@ -24,7 +24,7 @@ dependencies = [
 ]
 
 [tool.setuptools]
-packages = ["bamboo"]
+packages = ["bamboochute"]
 
 [project.urls]
 "Homepage" = "https://github.com/itaymev/smart-clean-package"
