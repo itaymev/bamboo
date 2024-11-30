@@ -1,7 +1,8 @@
-Version 1.1.3
+Version 1.1.4
 
 Bug Fixes:
-- import bug fix... 2nd time is the charm right
+- None
 
 Features (1.1.x):
 - Logging added as optional parameter on intitalization
+- Updated readme with an example project

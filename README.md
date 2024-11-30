@@ -1,4 +1,4 @@
-# BambooChute: Data Cleaning for Pandas - Beta 1.1.1
+# BambooChute: Data Cleaning for Pandas - Beta 1.1.3
 
 **BambooChute** is a comprehensive data cleaning toolkit built on top of Pandas, offering a vast array of functions to streamline your data preparation process. From handling missing data to detecting outliers, managing categorical data, and ensuring data integrity, BambooChute empowers data analysts, scientists, and engineers to work more efficiently with their data.
 
@@ -17,6 +17,7 @@
   - [Duplicate Management](#duplicate-management)
   - [Data Formatting](#data-formatting)
   - [Data Profiling](#data-profiling)
+- [Example Project](#example-project)
 - [Testing](#testing)
 - [Contributing](#contributing)
 - [License](#license)
@@ -240,6 +241,267 @@ Gain insights into your data by generating summary reports, allowing for a deepe
 ```python
 # Generate a summary report with key insights on data
 summary = bamboo.generate_summary_report()
+```
+
+## Example Project
+
+This is an example project by Itay Mevorach using Bamboo for some minor data cleaning.
+
+### Data Key
+
+#### Match Information
+- **Season**: League Season
+- **Div**: League Division
+- **Date**: Match Date (dd/mm/yy)
+- **Time**: Time of match kick off
+- **HomeTeam**: Home Team
+- **AwayTeam**: Away Team
+- **FTHG**: Full Time Home Team Goals
+- **FTAG**: Full Time Away Team Goals
+- **FTR**: Full Time Result (H=Home Win, D=Draw, A=Away Win)
+- **HTHG**: Half Time Home Team Goals
+- **HTAG**: Half Time Away Team Goals
+- **HTR**: Half Time Result (H=Home Win, D=Draw, A=Away Win)
+
+#### Match Statistics (where available)
+- **Referee**: Match Referee
+- **HS**: Home Team Shots
+- **AS**: Away Team Shots
+- **HST**: Home Team Shots on Target
+- **AST**: Away Team Shots on Target
+- **HC**: Home Team Corners
+- **AC**: Away Team Corners
+- **HF**: Home Team Fouls Committed
+- **AF**: Away Team Fouls Committed
+- **HY**: Home Team Yellow Cards
+- **AY**: Away Team Yellow Cards
+- **HR**: Home Team Red Cards
+- **AR**: Away Team Red Cards
+
+```python
+import pandas as pd
+import numpy as np
+
+import matplotlib.pyplot as plt
+import seaborn as sns
+from sklearn.decomposition import PCA
+from sklearn.cluster import KMeans
+from sklearn.preprocessing import StandardScaler
+from sklearn.linear_model import LinearRegression
+from sklearn.model_selection import train_test_split
+
+# This is my own package that I wrote for data cleaning. Check it out: https://pypi.org/project/BambooChute/ :)
+import bamboo as Bamboo
+```
+
+```python
+past_data = pd.read_csv("data/past-data.csv")
+past_data.head(5)
+```
+
+```python
+bamboo = Bamboo.Bamboo(past_data, sys_log=False)
+bamboo.save_state()
+bamboo.preview_data()
+```
+
+```python
+# I want a single date time column, as datetime type we set NaN time values to 00:00, since we dont want to lose the data that is only missing time of match
+bamboo.data["DateTime"] = pd.to_datetime(bamboo.data["Date"] + ", " + bamboo.data["Time"].fillna("00:00"), errors="coerce") 
+bamboo.data = bamboo.data.drop(columns=["Date", "Time"])
+bamboo.save_state()
+bamboo.data.shape
+```
+
+```python
+# This is one way to get rid of our nulls, but the issue with imputing by mean is that it will skew results of our match statistics.
+# We can drop the rows with missing values instead, or use a more complex imputation strategy. However since the ultimate goal is to
+# find the factors which dictate the outcome of a match, we should drop the rows with missing vals to avoid skewing our results.
+
+# Impute by mean, defaults to mode for categorical columns
+bamboo.impute_missing(strategy="mean")
+bamboo.data.isnull().any()
+```
+
+```python
+bamboo.undo()
+bamboo.data.isnull().any()
+```
+
+```python
+# We will actually drop the rows with missing values, to perserve the integrity of our data
+bamboo.drop_missing()
+bamboo.save_state()
+bamboo.data.shape
+```
+
+```python
+categorical_headers = ["Season", "Div", "HomeTeam", "AwayTeam", "Referee", "HTR", "FTR"] # Even though season is a number, it is categorical
+bamboo.convert_to_categorical(columns=categorical_headers)
+
+for cat in categorical_headers:
+    print(bamboo.get_unique_categories(cat))
+
+# We can see the categories for each categorical column now
+```
+
+```python
+# Checking for outliers with z-scores
+if True in bamboo.detect_outliers_zscore(threshold=2):
+    print("Outliers detected -- Z-Score")
+elif True in bamboo.detect_outliers_iqr():
+    print("Outliers detected -- IQR")
+elif True in bamboo.detect_outliers_modified_zscore(threshold=2):
+    print("Outliers detected -- Modified Z-Score")
+elif True in bamboo.detect_outliers_isolation_forest(n_estimators=150):
+    print("Outliers detected -- Isolation Forest")
+elif True in bamboo.detect_outliers_lof():
+    print("Outliers detected -- Local Outlier Factor")
+elif True in bamboo.detect_outliers_dbscan():
+    print("Outliers detected -- DBSCAN")
+
+# There are no outliers because this is a dataset of football matches (the only outlier in football is Ronaldo)
+```
+
+```python
+bamboo.export_data("data/past-data-clean.csv", format="csv") # Making a backup of our cleaned data
+clean_data = bamboo.get_data()
+print(clean_data)
+print("\nData Types:\n", clean_data.dtypes)
+```
+
+```python
+sns.countplot(clean_data['Div'])
+plt.title("Matches by Division")
+plt.xlabel("Count")
+plt.ylabel("Division")
+plt.show()
+```
+
+```python
+ftr = clean_data['FTR'].value_counts().sort_index()
+htr = clean_data['HTR'].value_counts().sort_index()
+outcomes_df = pd.DataFrame({'FTR': ftr, 'HTR': htr})
+
+outcomes_df.plot(kind='bar', color=['green', 'blue'], width=0.8)
+plt.title("Match Outcomes by Half Time and Full Time Results")
+plt.xlabel("Outcome")
+plt.ylabel("Count")
+plt.show()
+# Remember H means home team win, A means away team win, D means draw
+```
+
+```python
+numerical_cols = ['FTHG', 'FTAG', 'HS', 'AS', 'HTHG', 'HTAG', 'HST', 'AST', 'HF', 'AF', 'HC', 'AC', 'HY', 'AY', 'HR', 'AR']
+numerical_data = clean_data[numerical_cols]
+
+scaler = StandardScaler()
+scaled_data = scaler.fit_transform(numerical_data)
+
+# We can use PCA to reduce the dimensionality of our data
+pca = PCA(n_components=2)
+pca_result = pca.fit_transform(scaled_data)
+clean_data['PCA1'] = pca_result[:, 0]
+clean_data['PCA2'] = pca_result[:, 1]
+
+sns.scatterplot(x='PCA1', y='PCA2', hue=clean_data['FTR'], palette='cool', data=clean_data)
+plt.title("PCA of Match Data")
+plt.show()
+```
+
+```python
+kmeans = KMeans(n_clusters=3, random_state=42)
+clean_data['Cluster'] = kmeans.fit_predict(scaled_data)
+
+sns.scatterplot(x='PCA1', y='PCA2', hue='Cluster', palette='viridis', data=clean_data)
+plt.title("Clustering of Match Data")
+plt.show()
+```
+
+```python
+features = ['HS', 'AS', 'HST', 'AST', 'HF', 'AF', 'HC', 'AC', 'HY', 'AY', 'HR', 'AR'] # FTHG and FTAG would be way too good of features, they are basically the target
+target = 'FTR'  # Home Win: 1, Draw: 0, Away Win: -1
+
+# Map FTR
+ftr_mapping = {'H': 1, 'D': 0, 'A': -1}
+clean_data['FTR_num'] = clean_data['FTR'].map(ftr_mapping)
+
+x = clean_data[features]
+y = clean_data['FTR_num']
+scaler = StandardScaler()
+x = scaler.fit_transform(x)
+
+X_train, X_test, y_train, y_test = train_test_split(x, y, test_size=0.25, random_state=42)
+
+reg_model = LinearRegression()
+reg_model.fit(X_train, y_train)
+
+print(len(features), len(reg_model.coef_))
+
+feature_importance = pd.DataFrame({
+    'Feature': features,
+    'Coefficient': reg_model.coef_
+})
+feature_importance = feature_importance.sort_values(by='Coefficient', ascending=False)
+print(feature_importance)
+
+sns.barplot(x='Coefficient', y='Feature', data=feature_importance, palette='coolwarm', hue='Feature')
+plt.title("Feature Importance Based on Linear Regression Coefficients")
+plt.show()
+```
+
+```python
+# It is commonly known that the accuracy of shots is extremely important in determining the outcome of a match. I'll create a new
+# column that is the ratio of shots on target to total shots, and see how important this new feature is.
+
+clean_data['HST_%'] = clean_data.apply(lambda row: row['HST'] / row['HS'] if row['HS'] != 0 else 0, axis=1)
+clean_data['AST_%'] = clean_data.apply(lambda row: row['AST'] / row['AS'] if row['AS'] != 0 else 0, axis=1)
+
+features = ['HS', 'AS', 'HST', 'AST', 'HF', 'AF', 'HC', 'AC', 'HY', 'AY', 'HR', 'AR', 'HST_%', 'AST_%'] # Added HST_% and AST_%, the rest of the code is copied down
+target = 'FTR'  # Home Win: 1, Draw: 0, Away Win: -1
+
+# Map FTR
+ftr_mapping = {'H': 1, 'D': 0, 'A': -1}
+clean_data['FTR_num'] = clean_data['FTR'].map(ftr_mapping)
+
+x = clean_data[features]
+y = clean_data['FTR_num']
+scaler = StandardScaler()
+x = scaler.fit_transform(x)
+
+X_train, X_test, y_train, y_test = train_test_split(x, y, test_size=0.25, random_state=42)
+
+reg_model = LinearRegression()
+reg_model.fit(X_train, y_train)
+
+print(len(features), len(reg_model.coef_))
+
+feature_importance = pd.DataFrame({
+    'Feature': features,
+    'Coefficient': reg_model.coef_
+})
+feature_importance = feature_importance.sort_values(by='Coefficient', ascending=False)
+print(feature_importance)
+
+sns.barplot(x='Coefficient', y='Feature', data=feature_importance, palette='coolwarm', hue='Feature')
+plt.title("Feature Importance Based on Linear Regression Coefficients")
+plt.show()
+```
+
+```python
+sns.boxplot(x='FTR', y='HST_%', data=clean_data, palette='coolwarm', hue='FTR')
+plt.title("Correlation between Match Outcome and Home Team Shots on Target Percentage")
+plt.xlabel("Match Outcome (FTR)")
+plt.ylabel("Home Team Shots on Target Percentage")
+plt.show()
+```
+
+```python
+sns.boxplot(x='FTR', y='AST_%', data=clean_data, palette='coolwarm', hue='FTR')
+plt.title("Correlation between Match Outcome and Away Team Shots on Target Percentage")
+plt.xlabel("Match Outcome (FTR)")
+plt.ylabel("Away Team Shots on Target Percentage")
+plt.show()
 ```
 
 ## Testing
