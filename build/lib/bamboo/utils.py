@@ -1,7 +1,7 @@
 # bamboo/utils.py
 import logging
 from functools import wraps
-from log import is_logging_enabled
+from bamboo.settings.log import is_logging_enabled
 
 # Configure logging here, if not already done globally
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
