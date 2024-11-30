@@ -3,7 +3,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='BambooChute',
-    version='1.1.4',
+    version='1.1.5',
     author='Itay Mevorach',
     author_email='itaym@uoregon.edu',
     description='Data cleaning package built on top of Pandas',

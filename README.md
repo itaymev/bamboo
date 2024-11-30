@@ -1,4 +1,4 @@
-# BambooChute: Data Cleaning for Pandas - Beta 1.1.3
+# BambooChute: Data Cleaning for Pandas - Beta 1.1.5
 
 **BambooChute** is a comprehensive data cleaning toolkit built on top of Pandas, offering a vast array of functions to streamline your data preparation process. From handling missing data to detecting outliers, managing categorical data, and ensuring data integrity, BambooChute empowers data analysts, scientists, and engineers to work more efficiently with their data.
 

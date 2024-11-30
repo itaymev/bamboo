@@ -1,4 +1,5 @@
-Version 1.1.4
+Version 1.1.5
+I forgot to update the version name so now we're in 1.1.5 there are no changes from 1.1.4 lol.
 
 Bug Fixes:
 - None
