@@ -8,8 +8,7 @@ __pycache__/
 .pytest_cache/
 
 # Ignore egg info directory generated during package installation
-bamboo.egg-info/
-BambooChute.egg-info/
+*.egg-info/
 
 # Ignore virtual environment directories
 venv/
