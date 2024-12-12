@@ -1,7 +1,7 @@
-# bamboo/dates.py
+# bamboochute/dates.py
 import pandas as pd
-from bamboo.utils import log
-from bamboo.bamboo import Bamboo
+from bamboochute.utils import log
+from bamboochute.bamboo import Bamboo
 
 @log
 def convert_to_datetime(self, columns=None, format=None):

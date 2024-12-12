@@ -1,7 +1,7 @@
-# bamboo/duplicates.py
+# bamboochute/duplicates.py
 import pandas as pd
-from bamboo.utils import log
-from bamboo.bamboo import Bamboo
+from bamboochute.utils import log
+from bamboochute.bamboo import Bamboo
 from fuzzywuzzy import fuzz
 from fuzzywuzzy import process
 

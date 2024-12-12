@@ -1,4 +1,8 @@
-pandas>=1.1.0
+pandas>=1.4.0
 numpy>=1.18.0
 scikit-learn>=0.24.0
 fancyimpute>=0.7.0
+fuzzywuzzy>=0.18.0
+joblib>=1.0.0
+matplotlib>=3.1.0
+seaborn>=0.11.0

@@ -3,7 +3,7 @@
 import pandas as pd
 import numpy as np
 import pytest
-from bamboo.bamboo import Bamboo
+from bamboochute.bamboo import Bamboo
 
 @pytest.fixture
 def sample_data():
@@ -90,13 +90,13 @@ def test_impute_regression(sample_data):
 
     bamboo.data['age'] = pd.to_numeric(bamboo.data['age'], errors='coerce')
     bamboo.data['salary'] = pd.to_numeric(bamboo.data['salary'], errors='coerce')
-    bamboo.data['age'].iloc[1] = 30.0
+    bamboo.data.loc[1, 'age'] = 30.0
 
     bamboo.impute_regression(target_column='salary', predictor_columns=['age'])
     
     assert bamboo.get_data()['salary'].isnull().sum() == 0
-    assert np.isclose(bamboo.get_data()['salary'].iloc[1], 55714.28571428571) # verify regression value
-    assert np.isclose(bamboo.get_data()['salary'].iloc[3], 68571.42857142858) 
+    assert np.isclose(bamboo.get_data().loc[1, 'salary'], 55714.28571428571) # verify regression value
+    assert np.isclose(bamboo.get_data().loc[3, 'salary'], 68571.42857142858) 
 
     print(bamboo.get_data())
 
@@ -120,7 +120,7 @@ def test_impute_em(sample_data):
     bamboo.data['age'] = pd.to_numeric(bamboo.data['age'], errors='coerce')
     bamboo.data['salary'] = pd.to_numeric(bamboo.data['salary'], errors='coerce')
 
-    bamboo.impute_em(columns=['age', 'salary'], rank=1, max_iter=10)
+    bamboo.impute_em(columns=['age', 'salary'], max_iter=10)
     
     assert bamboo.get_data()['age'].isnull().sum() == 0
     assert bamboo.get_data()['salary'].isnull().sum() == 0

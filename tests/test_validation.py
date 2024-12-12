@@ -1,6 +1,6 @@
 # tests/test_validation.py
 import pytest
-from bamboo.bamboo import Bamboo
+from bamboochute.bamboo import Bamboo
 import pandas as pd
 
 @pytest.fixture

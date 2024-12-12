@@ -3,7 +3,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='bamboochute',
-    version='1.2.0',
+    version='1.2.1',
     author='Itay Mevorach',
     author_email='itaym@uoregon.edu',
     description='Data cleaning package built on top of Pandas',
@@ -12,7 +12,7 @@ setup(
     url='https://github.com/itaymev/bamboo', 
     packages=find_packages(),
     install_requires=[
-        'pandas>=1.1.0',
+        'pandas>=1.4.0',
         'numpy>=1.18.0',
         'scikit-learn>=0.24.0', 
         'fancyimpute>=0.7.0'   

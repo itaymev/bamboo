@@ -1,7 +1,7 @@
-# bamboo/validation.py
+# bamboochute/validation.py
 import pandas as pd
-from bamboo.utils import log
-from bamboo.bamboo import Bamboo
+from bamboochute.utils import log
+from bamboochute.bamboo import Bamboo
 
 @log
 def validate_missing_data(self, columns=None):

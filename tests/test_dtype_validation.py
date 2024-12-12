@@ -3,7 +3,7 @@
 import pytest
 import pandas as pd
 import numpy as np
-from bamboo.bamboo import Bamboo
+from bamboochute.bamboo import Bamboo
 
 @pytest.fixture
 def sample_data():

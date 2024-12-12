@@ -1,13 +1,73 @@
-# bamboo/imputation.py
+# bamboochute/imputation.py
 import pandas as pd
 import numpy as np
-from sklearn.experimental import enable_iterative_imputer  # noqa
-from sklearn.impute import KNNImputer, IterativeImputer
-from bamboo.utils import log
-from fancyimpute import IterativeSVD
+from scipy.spatial import distance
+from sklearn.linear_model import LinearRegression
 
-from bamboo.bamboo import Bamboo
+from bamboochute.utils import log
+from bamboochute.bamboo import Bamboo
 
+class KNNImputer:
+    def __init__(self, n_neighbors=5):
+        self.n_neighbors = n_neighbors
+
+    def fit_transform(self, X):
+        try:
+            X = X.copy()
+            for i in range(X.shape[0]):
+                if np.any(pd.isnull(X.iloc[i])):
+                    X.iloc[i] = self._impute_row(X, i)
+            return X
+        except Exception as e:
+            raise ValueError(f"Failed to impute missing values: {e}")
+
+    def _impute_row(self, X, row_idx):
+        try:
+            row = X.iloc[row_idx]
+            nan_indices = row[pd.isnull(row)].index
+            non_nan_indices = row[pd.notnull(row)].index
+
+            distances = X[non_nan_indices].apply(lambda x: distance.euclidean(x, row[non_nan_indices]), axis=1)
+            nearest_neighbors = distances.nsmallest(self.n_neighbors + 1).iloc[1:].index
+
+            for col in nan_indices:
+                row[col] = X.loc[nearest_neighbors, col].mean()
+
+            return row
+        except Exception as e:
+            raise ValueError(f"Failed to impute row {row_idx}: {e}")
+    
+class IterativeImputer:
+    def __init__(self, max_iter=10, tol=1e-3):
+        self.max_iter = max_iter
+        self.tol = tol
+
+    def fit_transform(self, X):
+        X = X.copy()
+        initial_imputation = X.mean()
+        X.fillna(initial_imputation, inplace=True)
+
+        for _ in range(self.max_iter):
+            X_old = X.copy()
+            for col in X.columns:
+                X = self._impute_column(X, col)
+            if np.linalg.norm(X - X_old) < self.tol:
+                break
+        return X
+
+    def _impute_column(self, X, col):
+        missing = X[col].isnull()
+        if missing.sum() == 0:
+            return X
+
+        not_missing = ~missing
+        predictors = X.columns != col
+
+        model = LinearRegression()
+        model.fit(X.loc[not_missing, predictors], X.loc[not_missing, col])
+        X.loc[missing, col] = model.predict(X.loc[missing, predictors])
+        return X
+    
 @log
 def impute_missing(self, strategy='mean', columns=None):
     """
@@ -29,7 +89,6 @@ def impute_missing(self, strategy='mean', columns=None):
     if columns is None:
         columns = self.data.columns
 
-    # impute missing values based on the data type of the cols, non-numeric cols will always be imputed using mode
     numeric_columns = self.data[columns].select_dtypes(include=[np.number]).columns
     non_numeric_columns = self.data[columns].select_dtypes(exclude=[np.number]).columns
 
@@ -38,12 +97,12 @@ def impute_missing(self, strategy='mean', columns=None):
     elif strategy == 'median':
         self.data[numeric_columns] = self.data[numeric_columns].fillna(self.data[numeric_columns].median())
     elif strategy == 'mode':
-        self.data[numeric_columns] = self.data[numeric_columns].fillna(self.data[numeric_columns].mode())
+        self.data[numeric_columns] = self.data[numeric_columns].apply(lambda col: col.fillna(col.mode()[0]))
     else:
         raise ValueError("Unsupported strategy! Use 'mean', 'median', or 'mode'.")
 
-    for column in non_numeric_columns:
-        self.data[column] = self.data[column].fillna(self.data[column].mode())
+    if non_numeric_columns.any():
+        self.data[non_numeric_columns] = self.data[non_numeric_columns].apply(lambda col: col.fillna(col.mode()[0]))
 
     self.log_changes(f"Imputed missing values using {strategy} strategy for numeric columns and mode for non-numeric columns.")
     return self
@@ -117,7 +176,6 @@ def impute_knn(self, n_neighbors=5, columns=None):
     if columns is None:
         columns = self.data.select_dtypes(include=[np.number]).columns
 
-    # Apply KNN Imputation
     imputer = KNNImputer(n_neighbors=n_neighbors)
     self.data[columns] = pd.DataFrame(imputer.fit_transform(self.data[columns]), columns=columns)
 
@@ -127,7 +185,7 @@ def impute_knn(self, n_neighbors=5, columns=None):
 @log
 def interpolate_missing(self, method='linear', axis=0, limit=None, inplace=True):
     """
-    Impute missing values by interpolation.
+    Impute missing values by interpolation. Only suitable for numeric columns.
 
     Parameters:
     - method: str, default='linear'
@@ -143,7 +201,23 @@ def interpolate_missing(self, method='linear', axis=0, limit=None, inplace=True)
     Returns:
     - Bamboo: The Bamboo instance with interpolated data.
     """
-    self.data.interpolate(method=method, axis=axis, limit=limit, inplace=inplace)
+    self.data = self.data.infer_objects(copy=False) # Convert object columns to numeric if possible
+    numeric_cols = self.data.select_dtypes(include=[np.number]).columns
+
+    for col in self.data.select_dtypes(['object']).columns:
+        try:
+            self.data[col] = pd.to_numeric(self.data[col], errors='raise')
+        except ValueError:
+            pass
+
+    numeric_cols = self.data.select_dtypes(include=[np.number]).columns
+
+    if inplace:
+        self.data[numeric_cols] = self.data[numeric_cols].interpolate(method=method, axis=axis, limit=limit)
+    else:
+        interpolated = self.data[numeric_cols].interpolate(method=method, axis=axis, limit=limit)
+        self.data[numeric_cols] = interpolated
+
     self.log_changes(f"Interpolated missing values using {method} method.")
     return self
 
@@ -161,23 +235,17 @@ def impute_regression(self, target_column, predictor_columns):
     Returns:
     - Bamboo: The Bamboo instance with regression-imputed data.
     """
-    from sklearn.linear_model import LinearRegression
-
-    # Split data into rows with missing target and without missing target
     missing_data = self.data[self.data[target_column].isna()]
     complete_data = self.data.dropna(subset=[target_column])
 
     if complete_data.empty:
         raise ValueError("Not enough data to perform regression imputation.")
 
-    # Train the regression model
     model = LinearRegression()
     model.fit(complete_data[predictor_columns], complete_data[target_column])
 
-    # Predict missing values
     predicted_values = model.predict(missing_data[predictor_columns])
 
-    # Fill missing values with predicted values
     self.data.loc[self.data[target_column].isna(), target_column] = predicted_values
 
     self.log_changes(f"Imputed missing values in {target_column} using regression on {predictor_columns}.")
@@ -202,14 +270,14 @@ def impute_mice(self, columns=None, max_iter=10, tol=1e-3):
     if columns is None:
         columns = self.data.select_dtypes(include=[np.number]).columns
 
-    imputer = IterativeImputer(max_iter=max_iter, tol=tol, random_state=0)
+    imputer = IterativeImputer(max_iter=max_iter, tol=tol)
     self.data[columns] = pd.DataFrame(imputer.fit_transform(self.data[columns]), columns=columns)
 
     self.log_changes(f"Imputed missing values using MICE with max_iter={max_iter} and tol={tol}.")
     return self
 
 @log
-def impute_em(self, columns=None, rank=2, max_iter=100):
+def impute_em(self, columns=None, max_iter=100, tol=1e-3):
     """
     Impute missing values using Expectation-Maximization (EM) method.
 
@@ -227,11 +295,10 @@ def impute_em(self, columns=None, rank=2, max_iter=100):
     if columns is None:
         columns = self.data.select_dtypes(include=[np.number]).columns
 
-    # Use IterativeSVD from fancyimpute for EM-like imputation
-    imputer = IterativeSVD(rank=rank, max_iters=max_iter)
+    imputer = IterativeImputer(max_iter=max_iter, tol=tol)
     self.data[columns] = pd.DataFrame(imputer.fit_transform(self.data[columns]), columns=columns)
 
-    self.log_changes(f"Imputed missing values using EM with rank={rank} and max_iter={max_iter}.")
+    self.log_changes(f"Imputed missing values using EM with tol={tol} and max_iter={max_iter}.")
     return self
 
 

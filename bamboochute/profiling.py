@@ -1,10 +1,10 @@
-# bamboo/profiling.py
+# bamboochute/profiling.py
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
-from bamboo.utils import log
-from bamboo.bamboo import Bamboo
+from bamboochute.utils import log
+from bamboochute.bamboo import Bamboo
 
 @log
 def basic_summary(self, include='all'):

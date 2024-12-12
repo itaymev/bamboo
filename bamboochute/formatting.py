@@ -1,8 +1,8 @@
-# bamboo/formatting.py
+# bamboochute/formatting.py
 import pandas as pd
 import re
-from bamboo.utils import log
-from bamboo.bamboo import Bamboo
+from bamboochute.utils import log
+from bamboochute.bamboo import Bamboo
 
 @log
 def trim_whitespace(self, columns=None):

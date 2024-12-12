@@ -1,9 +1,8 @@
-# bamboo/dtype_validation.py
-
+# bamboochute/dtype_validation.py
 import pandas as pd
 import numpy as np
-from bamboo.utils import log
-from bamboo.bamboo import Bamboo
+from bamboochute.utils import log
+from bamboochute.bamboo import Bamboo
 
 @log
 def check_dtype_consistency(self, columns=None):

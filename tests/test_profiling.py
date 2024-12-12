@@ -1,7 +1,7 @@
 # tests/test_profiling.py
 import pytest
 from unittest.mock import patch
-from bamboo.bamboo import Bamboo
+from bamboochute.bamboo import Bamboo
 import pandas as pd
 import numpy as np
 

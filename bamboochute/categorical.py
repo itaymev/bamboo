@@ -1,7 +1,7 @@
-# bamboo/categorical.py
+# bamboochute/categorical.py
 import pandas as pd
-from bamboo.utils import log
-from bamboo.bamboo import Bamboo
+from bamboochute.utils import log
+from bamboochute.bamboo import Bamboo
 
 @log
 def convert_to_categorical(self, columns=None):
@@ -175,14 +175,16 @@ def replace_rare_categories(self, column, threshold=0.01, replacement='Other'):
     - Bamboo: The Bamboo instance with rare categories replaced.
     """
     rare_categories = self.detect_rare_categories(column, threshold)
-    
+
     if replacement not in self.data[column].cat.categories:
         self.data[column] = self.data[column].cat.add_categories([replacement])
-    print(rare_categories, replacement)
-    self.data[column] = self.data[column].replace(rare_categories, replacement)
+        
+    mask = self.data[column].isin(rare_categories)
+    self.data.loc[mask, column] = replacement    
     self.data[column] = self.data[column].cat.remove_unused_categories()
-    self.log_changes(f"Replaced rare categories in column '{column}' with '{replacement}'.")
     
+    self.log_changes(f"Replaced rare categories in column '{column}' with '{replacement}'.")
+
     return self
 
 Bamboo.convert_to_categorical = convert_to_categorical

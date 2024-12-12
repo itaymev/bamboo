@@ -1,13 +1,13 @@
-# bamboo/outliers.py
+# bamboochute/outliers.py
 import pandas as pd
 import numpy as np
 from sklearn.cluster import DBSCAN
 from sklearn.covariance import EllipticEnvelope
 from sklearn.neighbors import LocalOutlierFactor
 from sklearn.ensemble import IsolationForest
-from bamboo.utils import log
 
-from bamboo.bamboo import Bamboo
+from bamboochute.utils import log
+from bamboochute.bamboo import Bamboo
 
 @log
 def detect_outliers_zscore(self, columns=None, threshold=3):
@@ -77,6 +77,8 @@ def detect_outliers_isolation_forest(self, contamination=0.05, random_state=None
     Returns:
     - pd.DataFrame: A DataFrame marking outliers with True/False.
     """
+    self.data = self.data.copy()
+
     if columns is None:
         columns = self.data.select_dtypes(include=[np.number]).columns
 
@@ -106,9 +108,12 @@ def detect_outliers_dbscan(self, eps=0.5, min_samples=5, columns=None):
     Returns:
     - pd.DataFrame: A DataFrame marking outliers with True/False.
     """
+    self.data = self.data.copy()
+
     if columns is None:
         columns = self.data.select_dtypes(include=[np.number]).columns
 
+    # DBSCAN model
     dbscan = DBSCAN(eps=eps, min_samples=min_samples)
     clusters = dbscan.fit_predict(self.data[columns])
     

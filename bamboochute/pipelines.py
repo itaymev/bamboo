@@ -1,7 +1,8 @@
+# bamboochute/pipelines.py
 import json
 import pandas as pd
-from bamboo.bamboo import Bamboo
-from bamboo.utils import log
+from bamboochute.bamboo import Bamboo
+from bamboochute.utils import log
 
 class BambooPipeline:
     def __init__(self):

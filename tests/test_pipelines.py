@@ -1,7 +1,7 @@
 # tests/test_pipelines.py
 import pytest
-from bamboo.pipelines import BambooPipeline
-from bamboo.bamboo import Bamboo
+from bamboochute.pipelines import BambooPipeline
+from bamboochute.bamboo import Bamboo
 import pandas as pd
 
 @pytest.fixture

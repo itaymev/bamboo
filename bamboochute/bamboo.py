@@ -1,7 +1,7 @@
-# bamboo/bamboo.py
+# bamboochute/bamboo.py
 import pandas as pd
-from bamboo.utils import log
-from bamboo.settings.log import set_logging
+from bamboochute.utils import log
+from bamboochute.settings.log import set_logging
 
 class Bamboo:
     """
