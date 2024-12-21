@@ -25,3 +25,7 @@ ENV/
 
 # Ignore notes files and other temporary files
 *.notes
+
+# Ignore build and distribution directories
+build/
+dist/

@@ -1,529 +1,367 @@
 # BambooChute: Data Cleaning for Pandas
 
-**BambooChute** is a comprehensive data cleaning toolkit built on top of Pandas, offering a vast array of functions to streamline your data preparation process. From handling missing data to detecting outliers, managing categorical data, and ensuring data integrity, BambooChute empowers data analysts, scientists, and engineers to work more efficiently with their data.
+**BambooChute** is a comprehensive data cleaning toolkit built on top of Pandas, offering an array of functions to streamline your data preparation process.
 
 ## Table of Contents
 
-- [Features](#features)
 - [Installation](#installation)
 - [Getting Started](#getting-started)
-- [Functionality Overview](#functionality-overview)
-  - [Loading Data](#loading-data)
-  - [Handling Missing Data](#handling-missing-data)
-  - [Outlier Detection and Removal](#outlier-detection-and-removal)
-  - [Categorical Data Processing](#categorical-data-processing)
-  - [Date Handling and Transformation](#date-handling-and-transformation)
-  - [Data Type Validation](#data-type-validation)
-  - [Duplicate Management](#duplicate-management)
-  - [Data Formatting](#data-formatting)
-  - [Data Profiling](#data-profiling)
-- [Example Project](#example-project)
+- [Key Features Overview](#key-features-overview)
+  - [1. Data Loading](#1-data-loading)
+  - [2. Imputation (Handling Missing Data)](#2-imputation-handling-missing-data)
+  - [3. Outlier Detection & Removal](#3-outlier-detection--removal)
+  - [4. Categorical Data Processing](#4-categorical-data-processing)
+  - [5. Date Handling & Transformation](#5-date-handling--transformation)
+  - [6. Data Type Validation & Conversion](#6-data-type-validation--conversion)
+  - [7. Duplicates & Near-Duplicates](#7-duplicates--near-duplicates)
+  - [8. Data Formatting & String Cleaning](#8-data-formatting--string-cleaning)
+  - [9. Data Profiling](#9-data-profiling)
+  - [10. Pipelines](#10-pipelines)
+  - [11. Undo/Redo & Logging](#11-undoredo--logging)
+  - [12. Data Validation Rules](#12-data-validation-rules)
+- [Example Usage](#example-usage)
 - [Testing](#testing)
 - [Contributing](#contributing)
 - [License](#license)
 
-## Features
-
-- **Versatile Data Loading:** Seamlessly load data from multiple formats (CSV, Excel, JSON, and Pandas DataFrames).
-- **Comprehensive Missing Data Handling:** Use a variety of imputation strategies (mean, median, KNN, regression, etc.) and drop methods.
-- **Flexible Outlier Detection & Removal:** Detect outliers using various methods (Z-score, IQR, Isolation Forest, etc.) with detailed configuration options.
-- **Efficient Categorical Data Processing:** Convert, encode, map, and manage rare categories with ease.
-- **Robust Date Handling:** Convert dates, extract date parts, handle invalid dates, and calculate date differences.
-- **Data Validation Tools:** Validate data types, check for missing data, and ensure value consistency.
-- **Duplicate Management:** Identify, mark, merge, and handle near-duplicates with options for fuzzy matching.
-- **Consistent Data Formatting:** Clean string data by trimming whitespace, standardizing cases, and removing special characters.
-- **Data Profiling:** Generate summary reports on missing data, outliers, distribution, and correlations for a comprehensive overview.
+---
 
 ## Installation
 
-Install BambooChute via pip:
+Install **BambooChute** using **pip**:
 
 ```bash
 pip install BambooChute
 ```
 
-Ensure dependencies from `requirements.txt` are installed:
+(If you’re installing from source or a local repo, ensure any dependencies in `requirements.txt` are satisfied.)
 
-```bash
-pip install -r requirements.txt
-```
+---
 
 ## Getting Started
 
-Here’s an example to get you started with loading data, handling missing values, detecting outliers, and exporting the cleaned data:
+**BambooChute** can load data from multiple file formats or directly from a Pandas DataFrame. Below is a minimal quickstart example demonstrating data loading, missing value imputation, outlier detection, and exporting.
 
 ```python
 import pandas as pd
-from BambooChute import Bamboo
+from bamboochute import Bamboo
 
-# Load data
-data = pd.read_csv('data.csv')
-
-# Initialize Bamboo
+# 1. Load data
+data = pd.read_csv("data.csv")
 bamboo = Bamboo(data)
 
-# Preview data
+# 2. Preview data
 print(bamboo.preview_data())
 
-# Handle missing data
+# 3. Impute missing values (mean for numeric, mode for categorical)
 bamboo.impute_missing(strategy='mean')
 
-# Detect and remove outliers
-bamboo.detect_outliers_zscore(threshold=3)
+# 4. Detect outliers with Z-score (threshold=3) and remove them
+bamboo.remove_outliers(method='zscore', threshold=3)
 
-# Export cleaned data
-bamboo.export_data('cleaned_data.csv')
+# 5. Export cleaned data
+bamboo.export_data("cleaned_data.csv", format="csv")
 ```
 
-## Functionality Overview
+---
 
-### Loading Data
+## Key Features Overview
 
-BambooChute makes it easy to load data from various sources. The `Bamboo` class can accept:
-- **CSV**: Read from a CSV file path.
-- **Excel**: Read from an Excel file.
-- **JSON**: Load data from a JSON file.
-- **Pandas DataFrame**: Load data directly from an in-memory DataFrame.
+### 1. Data Loading
+
+**BambooChute** supports:
+- **CSV**: `Bamboo("path/to/data.csv")`
+- **Excel**: `Bamboo("path/to/data.xlsx")`
+- **JSON**: `Bamboo("path/to/data.json")`
+- **Pandas DataFrame**: `Bamboo(df)`
+
+It automatically infers the file type and loads it into a Pandas DataFrame, or uses the DataFrame you provide.
+
+### 2. Imputation (Handling Missing Data)
+
+**BambooChute** offers multiple imputation strategies out of the box:
+
+- **Basic Strategies**  
+  - **Mean, Median, Mode**  
+  ```python
+  bamboo.impute_missing(strategy='mean')
+  ```
+- **KNN Imputation**  
+  ```python
+  bamboo.impute_knn(n_neighbors=5)
+  ```
+- **Regression Imputation**  
+  ```python
+  bamboo.impute_regression(target_column='Y', predictor_columns=['X1','X2'])
+  ```
+- **MICE (Multiple Imputation by Chained Equations)**  
+  ```python
+  bamboo.impute_mice(max_iter=10, tol=1e-3)
+  ```
+- **EM (Expectation-Maximization)**  
+  ```python
+  bamboo.impute_em(max_iter=100, tol=1e-3)
+  ```
+- **Custom Function**  
+  ```python
+  bamboo.fill_with_custom(lambda x: 'Unknown' if pd.isna(x) else x)
+  ```
+
+Or simply drop missing data:
 
 ```python
-# Load data from various formats
-bamboo = Bamboo('data.csv')  
-bamboo = Bamboo(df)  
-```
-
-This flexibility allows BambooChute to be integrated with most data pipelines, irrespective of the data source.
-
-### Handling Missing Data
-
-The package offers multiple imputation methods to fill missing values, including:
-- **Mean, Median, and Mode Imputation**: Fill missing values in numeric columns using statistical averages.
-- **K-Nearest Neighbors (KNN)**: Impute values based on the values of nearby points, ensuring continuity in numerical patterns.
-- **Custom Functions**: Define your own function for filling missing values.
-
-Example Usage:
-
-```python
-# Impute missing values using the mean of each column
-bamboo.impute_missing(strategy='mean')
-
-# Impute using K-Nearest Neighbors
-bamboo.impute_knn(n_neighbors=5)
-
-# Drop rows or columns with missing values
 bamboo.drop_missing(axis=0, how='any')
 ```
 
-Each function supports optional parameters to control which columns are affected, allowing for precise control over data imputation.
+### 3. Outlier Detection & Removal
 
-### Outlier Detection and Removal
+Various **outlier detection** methods and corresponding **removal** or **clipping**:
 
-Outliers can distort your data analysis, so BambooChute offers several detection methods:
-- **Z-score Detection**: Identifies outliers by measuring how many standard deviations a value is from the mean.
-- **IQR (Interquartile Range)**: Detects values outside a specific range based on the first and third quartiles.
-- **Isolation Forest and DBSCAN**: Use machine learning to detect outliers in complex datasets.
-
-Example Usage:
+- **Z-score**, **IQR**, **Isolation Forest**, **DBSCAN**, **LOF**, **Robust Covariance**, **Modified Z-score**:
 
 ```python
-# Detect outliers using Z-Score
+# Detect outliers with Z-score
 outliers = bamboo.detect_outliers_zscore(threshold=3)
 
-# Remove outliers using IQR
-bamboo.remove_outliers(method='iqr', multiplier=1.5)
-
-# Remove outliers using Isolation Forest
+# Remove outliers with Isolation Forest
 bamboo.remove_outliers_isolation_forest(contamination=0.1)
 ```
 
-### Categorical Data Processing
-
-BambooChute makes it easy to manage categorical data with functions for:
-- **Conversion to Categorical**: Change columns to categorical types.
-- **Encoding**: Convert categories to one-hot or label encodings.
-- **Rare Category Detection**: Identify and replace rare categories to improve model performance.
-
-Example Usage:
-
+You can also **clip** outliers to a specific value or range:
 ```python
-# Convert columns to categorical type
-bamboo.convert_to_categorical(['column'])
-
-# Encode categorical data with one-hot encoding
-bamboo.encode_categorical(method='onehot')
-
-# Detect and replace rare categories
-rare_categories = bamboo.detect_rare_categories(column='category_column', threshold=0.05)
-bamboo.replace_rare_categories(column='category_column', replacement='Other')
+bamboo.cap_outliers(method='iqr', lower_cap=0, upper_cap=100)
 ```
 
-### Date Handling and Transformation
+### 4. Categorical Data Processing
 
-BambooChute simplifies working with dates, offering tools for:
-- **Conversion to Datetime**: Convert columns to a datetime format.
-- **Extraction of Date Parts**: Extract parts of a date (year, month, day).
-- **Date Range Creation**: Generate sequences of dates.
-- **Date Differences**: Calculate differences between dates.
+- **Convert to Categorical**  
+  ```python
+  bamboo.convert_to_categorical(columns=['CategoryColumn'])
+  ```
+- **Categorical Encoding** (One-Hot, Label, Frequency)  
+  ```python
+  bamboo.encode_categorical(method='onehot')
+  bamboo.encode_frequency(['CategoryColumn'])
+  ```
+- **Rare Category Detection & Replacement**  
+  ```python
+  rare = bamboo.detect_rare_categories('CategoryColumn', threshold=0.01)
+  bamboo.replace_rare_categories('CategoryColumn', replacement='Other')
+  ```
 
-Example Usage:
+### 5. Date Handling & Transformation
+
+- **Convert to Datetime**  
+  ```python
+  bamboo.convert_to_datetime(['DateColumn'])
+  ```
+- **Extract Date Parts** (year, month, day, weekday…)  
+  ```python
+  bamboo.extract_date_parts('DateColumn', parts=['year','month','weekday'])
+  ```
+- **Create/Shift/Round Dates** & **Detect Time Gaps**  
+  ```python
+  bamboo.shift_dates(['DateColumn'], periods=7, freq='D')  # Shift a week forward
+  missing_date_gaps = bamboo.detect_time_gaps('DateColumn', freq='D')
+  ```
+
+### 6. Data Type Validation & Conversion
+
+- **Check Data Type Consistency**  
+  ```python
+  bamboo.check_dtype_consistency()
+  ```
+- **Convert & Enforce Column Types**  
+  ```python
+  bamboo.enforce_column_types({'Age': 'int64', 'Price': 'float64'})
+  ```
+- **Detect Numeric & Categorical Columns**  
+  ```python
+  numeric_cols = bamboo.detect_numeric_columns()
+  cat_cols = bamboo.detect_categorical_columns()
+  ```
+
+### 7. Duplicates & Near-Duplicates
+
+- **Identify, Drop, or Mark Duplicates**  
+  ```python
+  duplicates = bamboo.identify_duplicates(subset=['Name'])
+  bamboo.drop_duplicates(keep='first')
+  ```
+- **Merge Duplicates** with different strategies (`most_frequent`, `most_recent`).
+- **Near-Duplicate Detection** via **fuzzy matching**  
+  ```python
+  bamboo.handle_near_duplicates(column='Name', threshold=0.8)
+  ```
+
+### 8. Data Formatting & String Cleaning
+
+- **Trim Whitespace & Standardize Case**  
+  ```python
+  bamboo.trim_whitespace().standardize_case(case='lower')
+  ```
+- **Remove Special Characters**  
+  ```python
+  bamboo.remove_special_characters(columns=['TextColumn'], chars_to_remove='@#$')
+  ```
+- **Format Dates**  
+  ```python
+  bamboo.format_dates(format='%Y-%m-%d', columns=['DateColumn'])
+  ```
+- **Currency Formatting**  
+  ```python
+  bamboo.standardize_currency_format(columns=['Price'])
+  ```
+
+### 9. Data Profiling
+
+**BambooChute** provides an array of **profiling** methods:
+
+- **Basic Summary**  
+  ```python
+  summary = bamboo.basic_summary()
+  ```
+- **Missing Data Report**  
+  ```python
+  missing_report = bamboo.missing_data_report()
+  ```
+- **Outliers Report**  
+  ```python
+  outliers_report = bamboo.outliers_report(method='zscore', threshold=3)
+  ```
+- **Distribution & Correlation Reports**  
+  ```python
+  bamboo.distribution_report(columns=['Price','Quantity'])
+  corr_matrix = bamboo.correlation_report()
+  ```
+- **Duplicate Report**  
+  ```python
+  dup_report = bamboo.duplicate_report()
+  ```
+
+### 10. Pipelines
+
+Create **reproducible data cleaning pipelines**:
 
 ```python
-# Convert columns to datetime format
-bamboo.convert_to_datetime(['date_column'])
+from bamboochute import Bamboo, BambooPipeline
 
-# Extract specific date parts (e.g., year, month)
-bamboo.extract_date_parts('date_column', parts=['year', 'month'])
+pipeline = BambooPipeline()
+pipeline.add_step('impute_missing', strategy='mean')
+pipeline.add_step('drop_missing', axis=0, how='any')
+pipeline.add_step('remove_outliers', method='zscore', threshold=3)
 
-# Calculate time difference between two date columns
-bamboo.calculate_date_differences(start_column='start_date', end_column='end_date')
+# Save to JSON file
+pipeline.save_pipeline("my_pipeline.json")
+
+# Load & execute pipeline
+loaded_pipeline = BambooPipeline.load_pipeline("my_pipeline.json")
+bamboo = Bamboo("data.csv")
+cleaned_bamboo = loaded_pipeline.execute_pipeline(bamboo)
 ```
 
-### Data Type Validation
+### 11. Undo/Redo & Logging
 
-Data integrity is critical, and BambooChute’s data type validation tools allow you to:
-- **Check Consistency**: Identify columns with mixed types.
-- **Convert Data Types**: Enforce specific types across columns.
-- **Identify Invalid Types**: Detect rows with types that don’t match the expected type for a column.
+- **Undo/Redo**: BambooChute automatically **tracks** changes:
+  ```python
+  bamboo.save_state()  # Save a snapshot
+  # ...some cleaning...
+  bamboo.undo()        # Revert the last change
+  bamboo.reset_data()  # Revert to original data
+  ```
+- **Logging**: By default, **logging is on**. You can enable/disable:
+  ```python
+  from bamboochute.settings.log import set_logging
+  set_logging(False)   # Turn off logging globally
+  set_logging(True)    # Re-enable logging
+  ```
 
-Example Usage:
+### 12. Data Validation Rules
 
-```python
-# Check for data type consistency
-consistency = bamboo.check_dtype_consistency()
+Built-in **validation** methods to ensure data integrity:
 
-# Enforce specific data types
-bamboo.enforce_column_types({'age': 'int64', 'price': 'float64'})
-```
+- **Validate Missing Data**  
+  ```python
+  no_missing = bamboo.validate_missing_data(columns=['ColumnA','ColumnB'])
+  ```
+- **Validate Data Types**  
+  ```python
+  dtype_ok = bamboo.validate_data_types({'ColumnA': 'int64', 'ColumnB': 'object'})
+  ```
+- **Validate Value Ranges**  
+  ```python
+  in_range = bamboo.validate_value_ranges(column='Age', min_value=0, max_value=120)
+  ```
+- **Validate Unique Values**, **Valid Categories**, **Date Ranges**, or write a **Custom Validation** function.
 
-### Duplicate Management
+---
 
-Efficiently manage duplicates with functions for:
-- **Identifying Duplicates**: Find duplicate rows.
-- **Dropping Duplicates**: Remove duplicate rows, keeping specific occurrences.
-- **Near-Duplicate Detection**: Identify nearly identical values using fuzzy matching.
+## Example Usage
 
-Example Usage:
-
-```python
-# Identify duplicates based on specific columns
-duplicates = bamboo.identify_duplicates(subset=['name'])
-
-# Drop duplicates, keeping the first occurrence
-bamboo.drop_duplicates(keep='first')
-
-# Handle near-duplicates using fuzzy matching
-bamboo.handle_near_duplicates(column='name', threshold=0.8)
-```
-
-### Data Formatting
-
-BambooChute’s formatting tools allow you to standardize data appearance:
-- **Whitespace Management**: Trim excess whitespace from strings.
-- **Case Standardization**: Convert text to lowercase, uppercase, or title case.
-- **Special Character Removal**: Clean up text fields by removing unwanted symbols.
-
-Example Usage:
-
-```python
-# Trim whitespace in string columns
-bamboo.trim_whitespace()
-
-# Standardize case to title
-bamboo.standardize_case(case='title')
-
-# Remove special characters in specific columns
-bamboo.remove_special_characters(columns=['text_column'], chars_to_remove='@#$')
-```
-
-### Data Profiling
-
-Gain insights into your data by generating summary reports, allowing for a deeper understanding of data structure and issues.
-
-```python
-# Generate a summary report with key insights on data
-summary = bamboo.generate_summary_report()
-```
-
-## Example Project
-
-This is an example project by Itay Mevorach using Bamboo for some minor data cleaning.
-
-### Data Key
-
-#### Match Information
-- **Season**: League Season
-- **Div**: League Division
-- **Date**: Match Date (dd/mm/yy)
-- **Time**: Time of match kick off
-- **HomeTeam**: Home Team
-- **AwayTeam**: Away Team
-- **FTHG**: Full Time Home Team Goals
-- **FTAG**: Full Time Away Team Goals
-- **FTR**: Full Time Result (H=Home Win, D=Draw, A=Away Win)
-- **HTHG**: Half Time Home Team Goals
-- **HTAG**: Half Time Away Team Goals
-- **HTR**: Half Time Result (H=Home Win, D=Draw, A=Away Win)
-
-#### Match Statistics (where available)
-- **Referee**: Match Referee
-- **HS**: Home Team Shots
-- **AS**: Away Team Shots
-- **HST**: Home Team Shots on Target
-- **AST**: Away Team Shots on Target
-- **HC**: Home Team Corners
-- **AC**: Away Team Corners
-- **HF**: Home Team Fouls Committed
-- **AF**: Away Team Fouls Committed
-- **HY**: Home Team Yellow Cards
-- **AY**: Away Team Yellow Cards
-- **HR**: Home Team Red Cards
-- **AR**: Away Team Red Cards
+Below is a more extended snippet demonstrating how you might chain multiple cleaning operations:
 
 ```python
 import pandas as pd
-import numpy as np
+from bamboochute import Bamboo
 
-import matplotlib.pyplot as plt
-import seaborn as sns
-from sklearn.decomposition import PCA
-from sklearn.cluster import KMeans
-from sklearn.preprocessing import StandardScaler
-from sklearn.linear_model import LinearRegression
-from sklearn.model_selection import train_test_split
+df = pd.read_csv("raw_dataset.csv")
+bamboo = Bamboo(df)
 
-# This is my own package that I wrote for data cleaning. Check it out: https://pypi.org/project/BambooChute/ :)
-import bamboo as Bamboo
+# 1. Convert certain columns to date & categorical
+bamboo.convert_to_datetime(columns=['date'])
+bamboo.convert_to_categorical(columns=['category_col'])
+
+# 2. Impute missing data with advanced methods
+bamboo.impute_knn(n_neighbors=5, columns=['numeric_col1','numeric_col2'])
+bamboo.impute_mice(columns=['numeric_col3'], max_iter=5)
+
+# 3. Handle outliers
+bamboo.remove_outliers_isolation_forest(contamination=0.05)
+
+# 4. Clean strings & format currency
+bamboo.trim_whitespace().standardize_case()
+bamboo.standardize_currency_format(columns=['price_col'])
+
+# 5. Validate and produce a summary report
+assert bamboo.validate_missing_data() is True, "Error: Missing data!"
+summary = bamboo.basic_summary()
+print(summary)
+
+# 6. Export cleaned dataset
+bamboo.export_data("final_dataset.csv", format='csv')
 ```
 
-```python
-past_data = pd.read_csv("data/past-data.csv")
-past_data.head(5)
-```
-
-```python
-bamboo = Bamboo.Bamboo(past_data, sys_log=False)
-bamboo.save_state()
-bamboo.preview_data()
-```
-
-```python
-# I want a single date time column, as datetime type we set NaN time values to 00:00, since we dont want to lose the data that is only missing time of match
-bamboo.data["DateTime"] = pd.to_datetime(bamboo.data["Date"] + ", " + bamboo.data["Time"].fillna("00:00"), errors="coerce") 
-bamboo.data = bamboo.data.drop(columns=["Date", "Time"])
-bamboo.save_state()
-bamboo.data.shape
-```
-
-```python
-# This is one way to get rid of our nulls, but the issue with imputing by mean is that it will skew results of our match statistics.
-# We can drop the rows with missing values instead, or use a more complex imputation strategy. However since the ultimate goal is to
-# find the factors which dictate the outcome of a match, we should drop the rows with missing vals to avoid skewing our results.
-
-# Impute by mean, defaults to mode for categorical columns
-bamboo.impute_missing(strategy="mean")
-bamboo.data.isnull().any()
-```
-
-```python
-bamboo.undo()
-bamboo.data.isnull().any()
-```
-
-```python
-# We will actually drop the rows with missing values, to perserve the integrity of our data
-bamboo.drop_missing()
-bamboo.save_state()
-bamboo.data.shape
-```
-
-```python
-categorical_headers = ["Season", "Div", "HomeTeam", "AwayTeam", "Referee", "HTR", "FTR"] # Even though season is a number, it is categorical
-bamboo.convert_to_categorical(columns=categorical_headers)
-
-for cat in categorical_headers:
-    print(bamboo.get_unique_categories(cat))
-
-# We can see the categories for each categorical column now
-```
-
-```python
-# Checking for outliers with z-scores
-if True in bamboo.detect_outliers_zscore(threshold=2):
-    print("Outliers detected -- Z-Score")
-elif True in bamboo.detect_outliers_iqr():
-    print("Outliers detected -- IQR")
-elif True in bamboo.detect_outliers_modified_zscore(threshold=2):
-    print("Outliers detected -- Modified Z-Score")
-elif True in bamboo.detect_outliers_isolation_forest(n_estimators=150):
-    print("Outliers detected -- Isolation Forest")
-elif True in bamboo.detect_outliers_lof():
-    print("Outliers detected -- Local Outlier Factor")
-elif True in bamboo.detect_outliers_dbscan():
-    print("Outliers detected -- DBSCAN")
-
-# There are no outliers because this is a dataset of football matches (the only outlier in football is Ronaldo)
-```
-
-```python
-bamboo.export_data("data/past-data-clean.csv", format="csv") # Making a backup of our cleaned data
-clean_data = bamboo.get_data()
-print(clean_data)
-print("\nData Types:\n", clean_data.dtypes)
-```
-
-```python
-sns.countplot(clean_data['Div'])
-plt.title("Matches by Division")
-plt.xlabel("Count")
-plt.ylabel("Division")
-plt.show()
-```
-
-```python
-ftr = clean_data['FTR'].value_counts().sort_index()
-htr = clean_data['HTR'].value_counts().sort_index()
-outcomes_df = pd.DataFrame({'FTR': ftr, 'HTR': htr})
-
-outcomes_df.plot(kind='bar', color=['green', 'blue'], width=0.8)
-plt.title("Match Outcomes by Half Time and Full Time Results")
-plt.xlabel("Outcome")
-plt.ylabel("Count")
-plt.show()
-# Remember H means home team win, A means away team win, D means draw
-```
-
-```python
-numerical_cols = ['FTHG', 'FTAG', 'HS', 'AS', 'HTHG', 'HTAG', 'HST', 'AST', 'HF', 'AF', 'HC', 'AC', 'HY', 'AY', 'HR', 'AR']
-numerical_data = clean_data[numerical_cols]
-
-scaler = StandardScaler()
-scaled_data = scaler.fit_transform(numerical_data)
-
-# We can use PCA to reduce the dimensionality of our data
-pca = PCA(n_components=2)
-pca_result = pca.fit_transform(scaled_data)
-clean_data['PCA1'] = pca_result[:, 0]
-clean_data['PCA2'] = pca_result[:, 1]
-
-sns.scatterplot(x='PCA1', y='PCA2', hue=clean_data['FTR'], palette='cool', data=clean_data)
-plt.title("PCA of Match Data")
-plt.show()
-```
-
-```python
-kmeans = KMeans(n_clusters=3, random_state=42)
-clean_data['Cluster'] = kmeans.fit_predict(scaled_data)
-
-sns.scatterplot(x='PCA1', y='PCA2', hue='Cluster', palette='viridis', data=clean_data)
-plt.title("Clustering of Match Data")
-plt.show()
-```
-
-```python
-features = ['HS', 'AS', 'HST', 'AST', 'HF', 'AF', 'HC', 'AC', 'HY', 'AY', 'HR', 'AR'] # FTHG and FTAG would be way too good of features, they are basically the target
-target = 'FTR'  # Home Win: 1, Draw: 0, Away Win: -1
-
-# Map FTR
-ftr_mapping = {'H': 1, 'D': 0, 'A': -1}
-clean_data['FTR_num'] = clean_data['FTR'].map(ftr_mapping)
-
-x = clean_data[features]
-y = clean_data['FTR_num']
-scaler = StandardScaler()
-x = scaler.fit_transform(x)
-
-X_train, X_test, y_train, y_test = train_test_split(x, y, test_size=0.25, random_state=42)
-
-reg_model = LinearRegression()
-reg_model.fit(X_train, y_train)
-
-print(len(features), len(reg_model.coef_))
-
-feature_importance = pd.DataFrame({
-    'Feature': features,
-    'Coefficient': reg_model.coef_
-})
-feature_importance = feature_importance.sort_values(by='Coefficient', ascending=False)
-print(feature_importance)
-
-sns.barplot(x='Coefficient', y='Feature', data=feature_importance, palette='coolwarm', hue='Feature')
-plt.title("Feature Importance Based on Linear Regression Coefficients")
-plt.show()
-```
-
-```python
-# It is commonly known that the accuracy of shots is extremely important in determining the outcome of a match. I'll create a new
-# column that is the ratio of shots on target to total shots, and see how important this new feature is.
-
-clean_data['HST_%'] = clean_data.apply(lambda row: row['HST'] / row['HS'] if row['HS'] != 0 else 0, axis=1)
-clean_data['AST_%'] = clean_data.apply(lambda row: row['AST'] / row['AS'] if row['AS'] != 0 else 0, axis=1)
-
-features = ['HS', 'AS', 'HST', 'AST', 'HF', 'AF', 'HC', 'AC', 'HY', 'AY', 'HR', 'AR', 'HST_%', 'AST_%'] # Added HST_% and AST_%, the rest of the code is copied down
-target = 'FTR'  # Home Win: 1, Draw: 0, Away Win: -1
-
-# Map FTR
-ftr_mapping = {'H': 1, 'D': 0, 'A': -1}
-clean_data['FTR_num'] = clean_data['FTR'].map(ftr_mapping)
-
-x = clean_data[features]
-y = clean_data['FTR_num']
-scaler = StandardScaler()
-x = scaler.fit_transform(x)
-
-X_train, X_test, y_train, y_test = train_test_split(x, y, test_size=0.25, random_state=42)
-
-reg_model = LinearRegression()
-reg_model.fit(X_train, y_train)
-
-print(len(features), len(reg_model.coef_))
-
-feature_importance = pd.DataFrame({
-    'Feature': features,
-    'Coefficient': reg_model.coef_
-})
-feature_importance = feature_importance.sort_values(by='Coefficient', ascending=False)
-print(feature_importance)
-
-sns.barplot(x='Coefficient', y='Feature', data=feature_importance, palette='coolwarm', hue='Feature')
-plt.title("Feature Importance Based on Linear Regression Coefficients")
-plt.show()
-```
-
-```python
-sns.boxplot(x='FTR', y='HST_%', data=clean_data, palette='coolwarm', hue='FTR')
-plt.title("Correlation between Match Outcome and Home Team Shots on Target Percentage")
-plt.xlabel("Match Outcome (FTR)")
-plt.ylabel("Home Team Shots on Target Percentage")
-plt.show()
-```
-
-```python
-sns.boxplot(x='FTR', y='AST_%', data=clean_data, palette='coolwarm', hue='FTR')
-plt.title("Correlation between Match Outcome and Away Team Shots on Target Percentage")
-plt.xlabel("Match Outcome (FTR)")
-plt.ylabel("Away Team Shots on Target Percentage")
-plt.show()
-```
+---
 
 ## Testing
 
-The BambooChute package uses **pytest** for testing. To execute all tests in the `tests` directory, run:
+**BambooChute** uses [pytest](https://docs.pytest.org) for testing.  
+To run all tests in the `tests` folder:
 
 ```bash
 pytest tests/
 ```
 
-For more detailed output, add the `-v` flag for verbose mode or `--maxfail=3` to stop after three failures. This ensures every function is well-tested for reliability and performance.
+Optional flags:
+- **`-v`** for verbose mode  
+- **`--maxfail=3`** to stop after three test failures
+
+---
 
 ## Contributing
 
-To contribute:
+1. **Fork** the repository.  
+2. Create a **new branch**.  
+3. Make changes and **submit a pull request**.  
+   - You will receive an email asking about your changes—please reply.  
+4. Thank you for helping improve **BambooChute**!
 
-1. Go the homepage, fork the repository.
-2. Create a new branch.
-3. Make changes and submit a pull request with your email.
-  - You will receive an email asking about your changes, please reply.
-4. Thanks for contributing!
+---
 
 ## License
 
-BambooChute is licensed under the MIT License.
+**BambooChute** is released under the [MIT License](LICENSE). You’re free to use, modify, and distribute this library for personal or commercial projects, subject to the license terms.
+
+---
+
+**Happy Cleaning!** For additional examples or advanced usage, refer to the [documentation](https://pypi.org/project/BambooChute/) or explore the source code in this repo.
